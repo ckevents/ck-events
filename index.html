@@ -276,7 +276,8 @@ input[type=file]{padding:6px 10px;font-size:12px;cursor:pointer}
   <div class="setup-banner-title">⚙️ One-time setup required</div>
   <p>Paste your Google Apps Script exec URL below to connect this app to your Google Sheet.</p>
   <input id="setup-url-input" placeholder="https://script.google.com/macros/s/.../exec">
-  <button onclick="saveScriptUrl()">💾 Connect to Google Sheet</button>
+  <button onclick="saveScriptUrl()" style="margin-bottom:6px">💾 Save & Connect</button>
+  <button onclick="testConnection(false)" style="background:rgba(6,182,212,.2);color:#22d3ee;border:1px solid rgba(6,182,212,.4);width:100%;padding:9px;border-radius:9px;font-weight:700;cursor:pointer;font-size:12px">🔌 Test Current Connection</button>
 </div>
 
 <div class="hdr">
@@ -726,8 +727,8 @@ function saveScriptUrl() {
   if (!url.includes('script.google.com')) { toast('Paste the full Apps Script exec URL', 'err'); return; }
   localStorage.setItem('CK_SCRIPT_URL', url);
   document.getElementById('setup-banner').classList.remove('show');
-  toast('✅ Connected to Google Sheet!', 'ok');
-  initApp();
+  toast('✅ Saved! Testing connection…', 'ok');
+  testConnection(true);
 }
 function checkSetup() {
   if (!getScriptUrl()) {
@@ -736,37 +737,71 @@ function checkSetup() {
   }
   return true;
 }
+function testConnection(autoInit) {
+  const url = getScriptUrl();
+  if (!url) { toast('Paste your Script URL first', 'err'); return; }
+  toast('🔌 Testing connection…');
+  const testUrl = url + '?action=ping';
+  fetch(testUrl, { redirect: 'follow' })
+    .then(r => r.text())
+    .then(text => {
+      let parsed;
+      try { parsed = JSON.parse(text); } catch(e) {
+        toast('❌ Got HTML not JSON — wrong URL or not deployed', 'err');
+        console.error('Response was:', text.substring(0, 200));
+        return;
+      }
+      if (parsed.ok) {
+        toast('✅ Connected! Sheet: ' + (parsed.data.sheet || 'OK'), 'ok');
+        if (autoInit) initApp();
+      } else {
+        toast('❌ Script error: ' + parsed.error, 'err');
+      }
+    })
+    .catch(e => {
+      toast('❌ Network error: ' + e.message + ' — check URL', 'err');
+      console.error('Connection error:', e);
+    });
+}
 
-// ── DROP-IN REPLACEMENT FOR google.script.run ─────────────────
-// Drop-in for google.script.run — uses GET to avoid Apps Script CORS/redirect issues
-// GET requests from external domains work reliably with Apps Script.
-// Usage: gsr().withSuccessHandler(fn).withFailureHandler(fn).methodName(arg1, arg2)
+// Drop-in replacement for google.script.run
+// Uses GET ?action=X&args=[...] — GET avoids Apps Script POST/redirect issue
 function gsr() {
   let _success = () => {};
-  let _failure = (e) => { toast('Error: ' + (e.message || String(e)), 'err'); };
-
-  const handler = {
-    withSuccessHandler(fn) { _success = fn; return handler; },
-    withFailureHandler(fn) { _failure = fn; return handler; }
+  let _failure = (e) => {
+    const msg = e.message || String(e);
+    toast('❌ ' + msg.substring(0, 80), 'err');
+    console.error('[gsr error]', msg);
   };
-
-  return new Proxy(handler, {
-    get(target, prop) {
-      if (prop in target) return target[prop];
+  const proxy = new Proxy({}, {
+    get(_, prop) {
+      if (prop === 'withSuccessHandler') return (fn) => { _success = fn; return proxy; };
+      if (prop === 'withFailureHandler') return (fn) => { _failure = fn; return proxy; };
       return (...args) => {
         const base = getScriptUrl();
         if (!base) { _failure(new Error('Script URL not set. Use the setup banner.')); return; }
-        // Build GET URL: ?action=methodName&args=["arg1","arg2"]
         const url = base
           + '?action=' + encodeURIComponent(prop)
           + (args.length ? '&args=' + encodeURIComponent(JSON.stringify(args)) : '');
+        console.log('[gsr →]', prop, args.length ? args : '');
         fetch(url, { redirect: 'follow' })
-          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(r => { if (!r.ok) throw new Error(r.error || 'Server error'); _success(r.data); })
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(text => {
+            let r;
+            try { r = JSON.parse(text); }
+            catch(e) {
+              console.error('[gsr] HTML response for', prop, ':', text.slice(0,200));
+              throw new Error('Apps Script returned HTML — create a NEW deployment and update the URL');
+            }
+            if (!r.ok) throw new Error(r.error || 'Server error');
+            console.log('[gsr ✓]', prop, r.data);
+            _success(r.data);
+          })
           .catch(e => _failure(e));
       };
     }
   });
+  return proxy;
 }
 
 // ══ STATE ════════════════════════════════════════
@@ -849,7 +884,23 @@ function submitTx(){const tyVal=getVal('p-type');if(!tyVal){toast('Select type',
 function loadEventTxs(eid){inner('p-tx-list','<li><div class="spin"></div></li>');gsr().withSuccessHandler(txs=>{if(!txs||!txs.length){inner('p-tx-list','<li class="empty"><i>📭</i>No transactions yet</li>');inner('p-tx-summary','');return;}const inc=txs.filter(t=>t.direction==='income').reduce((s,t)=>s+t.amount,0);const exp=txs.filter(t=>t.direction==='expense').reduce((s,t)=>s+t.amount,0);inner('p-tx-summary','<span style=color:#34d399>+$'+fmt(inc)+'</span> / <span style=color:#fb7185>-$'+fmt(exp)+'</span>');const incTxs=txs.filter(t=>t.direction==='income'),expTxs=txs.filter(t=>t.direction==='expense');let html='';if(incTxs.length){html+='<li class="tx-divider">💚 Income ('+incTxs.length+')</li>';incTxs.forEach(tx=>{html+=`<li class="tx-item"><div style="flex:1;min-width:0"><div class="tx-label income">${tx.subtype}${tx.person?' — '+tx.person:''}</div><div class="tx-meta">${tx.date} · ${tx.method} · ${tx.account}</div>${tx.notes?'<div class="tx-meta" style="color:var(--soft)">'+tx.notes+'</div>':''}</div><div class="tx-amt income">+$${fmt(tx.amount)}</div></li>`;});}if(expTxs.length){html+='<li class="tx-divider">🔴 Expenses ('+expTxs.length+')</li>';expTxs.forEach(tx=>{html+=`<li class="tx-item"><div style="flex:1;min-width:0"><div class="tx-label expense">${tx.subtype}${tx.person?' — '+tx.person:''}</div><div class="tx-meta">${tx.date} · ${tx.method} · ${tx.account}</div>${tx.notes?'<div class="tx-meta" style="color:var(--soft)">'+tx.notes+'</div>':''}</div><div class="tx-amt expense">-$${fmt(tx.amount)}</div></li>`;});}inner('p-tx-list',html);}).withFailureHandler(()=>inner('p-tx-list','<li class="err-msg">⚠️ Could not load</li>')).getEventTransactions(eid);}
 
 // ══ EVENTS ═══════════════════════════════════════
-function submitEvent(){const data={clientName:getVal('e-cl'),contactId:getVal('e-cid'),clientPhone:getVal('e-ph'),clientEmail:getVal('e-em'),eventType:getVal('e-ty'),eventDate:getVal('e-dt'),startTime:getVal('e-st'),endTime:getVal('e-et'),quote:getVal('e-qt'),venue:getVal('e-vn'),address:getVal('e-va'),equipment:getChips('eq-chips'),team:getChips('tm-chips'),notes:getVal('e-nt'),contactType:getVal('e-ctype')};if(!data.clientName){toast('Client name required','err');return;}if(!data.eventDate){toast('Date required','err');return;}if(!data.venue){toast('Venue required','err');return;}if(!data.quote||parseFloat(data.quote)<=0){toast('Enter quote amount','err');return;}const btn=document.getElementById('e-submit-btn');btn.disabled=true;btn.textContent='⏳ Booking…';toast('Creating event…');gsr().withSuccessHandler(r=>{toast('✅ '+r.eventId+' booked!','ok');btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';resetEventForm();loadPendingBalances();}).withFailureHandler(e=>{toast('Error: '+e.message,'err');btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';}).createEvent(data);}
+function submitEvent(){
+  const data={clientName:getVal('e-cl'),contactId:getVal('e-cid'),clientPhone:getVal('e-ph'),clientEmail:getVal('e-em'),eventType:getVal('e-ty'),eventDate:getVal('e-dt'),startTime:getVal('e-st'),endTime:getVal('e-et'),quote:getVal('e-qt')||'0',venue:getVal('e-vn'),address:getVal('e-va'),equipment:getChips('eq-chips'),team:getChips('tm-chips'),notes:getVal('e-nt'),contactType:getVal('e-ctype')};
+  if(!data.clientName){toast('❌ Client name required','err');return;}
+  if(!data.eventDate){toast('❌ Date required','err');return;}
+  if(!data.venue){toast('❌ Venue required','err');return;}
+  const btn=document.getElementById('e-submit-btn');
+  btn.disabled=true;btn.textContent='⏳ Booking…';
+  toast('📅 Creating event…');
+  gsr().withSuccessHandler(r=>{
+    toast('✅ '+r.eventId+' booked!','ok');
+    btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';
+    resetEventForm();loadPendingBalances();
+  }).withFailureHandler(e=>{
+    toast('❌ '+e.message,'err');
+    btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';
+  }).createEvent(data);
+}
 function pickEventForEdit(eid,customer){setVal('ed-search',eid+' — '+customer);setVal('ed-eid',eid);hideDD('ed-search-dd');gsr().withSuccessHandler(ev=>{if(!ev){toast('Not found','err');return;}populateEditForm(ev);document.getElementById('edit-form').style.display='block';}).withFailureHandler(e=>toast('Error','err')).getEventFull(eid);}
 function populateEditForm(ev){document.getElementById('ed-ty').value=ev.eventType||'';document.getElementById('ed-status').value=ev.status||'Booked';setVal('ed-dt',ev.eventDate||'');setVal('ed-st',ev.startTime||'');setVal('ed-et',ev.endTime||'');setVal('ed-vn',ev.venue||'');setVal('ed-va',ev.address||'');setVal('ed-qt',ev.quote||'');setVal('ed-eq',ev.equipment||'');setVal('ed-tm',ev.team||'');setVal('ed-nt',ev.notes||'');}
 function submitEditEvent(){const eid=getVal('ed-eid');if(!eid){toast('No event','err');return;}const btn=document.getElementById('ed-submit-btn');btn.disabled=true;btn.textContent='⏳ Saving…';gsr().withSuccessHandler(r=>{toast('✅ Updated!','ok');btn.disabled=false;btn.textContent='💾 Save + Update Calendar';resetEditForm();}).withFailureHandler(e=>{toast('Error: '+e.message,'err');btn.disabled=false;btn.textContent='💾 Save + Update Calendar';}).updateEvent(eid,{eventType:getVal('ed-ty'),eventDate:getVal('ed-dt'),startTime:getVal('ed-st'),endTime:getVal('ed-et'),venue:getVal('ed-vn'),address:getVal('ed-va'),quote:getVal('ed-qt'),equipment:getVal('ed-eq'),team:getVal('ed-tm'),notes:getVal('ed-nt'),status:getVal('ed-status')});}
