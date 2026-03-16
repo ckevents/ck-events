@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>⚡ CK Events</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#07090f;--card:#0f1624;--card2:#161f30;--border:#1e2d4a;
+  --accent:#6d42f5;--accent2:#4f2fc0;--green:#10b981;--red:#f43f5e;
+  --gold:#f59e0b;--cyan:#06b6d4;--text:#e2e8f0;--muted:#64748b;--soft:#94a3b8;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.5)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;overscroll-behavior:none;min-height:100vh}
+
+.hdr{background:linear-gradient(135deg,#06040f 0%,#1a0f3c 50%,#06040f 100%);padding:13px 16px 12px;position:sticky;top:0;z-index:200;box-shadow:0 1px 0 rgba(109,66,245,.3),0 4px 24px rgba(0,0,0,.7);display:flex;align-items:center;justify-content:space-between}
+.logo-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;box-shadow:0 0 20px rgba(109,66,245,.5)}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-title{font-size:17px;font-weight:900;color:#fff}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px}
+.hdr-date{font-size:10px;color:rgba(255,255,255,.45);text-align:right;line-height:1.5}
+
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:63px;z-index:100;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;min-width:52px;padding:9px 7px 8px;text-align:center;font-size:8px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase}
+.tab i{font-size:16px;display:block;margin-bottom:2px}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+.wrap{padding:12px;max-width:640px;margin:0 auto;padding-bottom:40px}
+.scr{display:none}.scr.on{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-title{font-size:11px;font-weight:800;margin-bottom:13px;color:var(--text);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.7px}
+.ct-badge{font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:auto}
+
+.fg{margin-bottom:12px}.fg:last-child{margin-bottom:0}
+label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.6px}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--card2);transition:border-color .15s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(109,66,245,.2)}
+input::placeholder{color:var(--muted)}select option{background:#161f30;color:var(--text)}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+input[type=date],input[type=time],input[type=number],input[type=file]{color-scheme:dark}
+input[type=file]{padding:6px 10px;font-size:12px;cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+
+.ac{position:relative}
+.acd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card2);border:1.5px solid var(--accent);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:400;max-height:210px;overflow-y:auto;display:none}
+.aci{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.aci:last-child{border-bottom:none}.aci:hover{background:rgba(109,66,245,.12)}
+.aci .an{font-size:13px;font-weight:700;color:var(--text)}
+.aci .ad{font-size:11px;color:var(--muted);margin-top:2px}
+.ab{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.ab-client{background:rgba(16,185,129,.15);color:#34d399}.ab-dj{background:rgba(109,66,245,.15);color:#a78bfa}
+.ab-vendor{background:rgba(245,158,11,.15);color:#fbbf24}.ab-team{background:rgba(59,130,246,.15);color:#93c5fd}
+
+.btn{width:100%;padding:12px;border:none;border-radius:11px;font-size:14px;font-weight:800;cursor:pointer;transition:transform .1s,opacity .15s;margin-bottom:8px;letter-spacing:.3px}
+.btn:active{transform:scale(.97)}.btn:last-child{margin-bottom:0}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px rgba(109,66,245,.4)}
+.btn-success{background:linear-gradient(135deg,#059669,#047857);color:#fff}
+.btn-gold{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+.btn-cyan{background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff}
+.btn-secondary{background:var(--card2);color:var(--soft);font-weight:700;border:1px solid var(--border)}
+.btn-sm{display:inline-block;padding:6px 12px;font-size:11px;font-weight:700;border:none;border-radius:8px;cursor:pointer;background:var(--card2);color:var(--soft);border:1px solid var(--border)}
+.btn-sm-accent{background:rgba(109,66,245,.2);color:#a78bfa;border-color:rgba(109,66,245,.3)}
+.btn-sm-red{background:rgba(244,63,94,.15);color:#fb7185;border-color:rgba(244,63,94,.25)}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.chip{padding:6px 11px;background:var(--card2);border:1.5px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;color:var(--soft);cursor:pointer;transition:all .15s;user-select:none;display:flex;align-items:center;gap:4px}
+.chip:active{transform:scale(.95)}.chip.on{background:rgba(109,66,245,.2);border-color:var(--accent);color:#c4b5fd}
+.chip-del{display:none;font-size:10px;color:var(--red);cursor:pointer}.chip-custom .chip-del{display:inline}
+.chip-add{border-style:dashed;color:var(--muted);font-size:10px}.chip-add:hover{border-color:var(--accent);color:var(--accent)}
+.chip-saved{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25);color:#fbbf24}.chip-saved.on{background:rgba(245,158,11,.25);border-color:var(--gold)}
+.custom-row{display:none;gap:8px;margin-top:7px;align-items:center}.custom-row.show{display:flex}
+.custom-row input{flex:1;font-size:13px;padding:7px 11px}
+.custom-row button{flex-shrink:0;padding:7px 12px;font-size:11px;font-weight:700;border:none;border-radius:8px;cursor:pointer;background:rgba(109,66,245,.2);color:#a78bfa;border:1px solid rgba(109,66,245,.3)}
+
+.sheet-info{background:linear-gradient(135deg,rgba(109,66,245,.08),rgba(109,66,245,.04));border:1px solid rgba(109,66,245,.2);border-radius:11px;padding:12px;margin-bottom:12px}
+.sheet-info-title{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sheet-row{display:flex;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(109,66,245,.1)}
+.sheet-row:last-child{border-bottom:none}
+.sheet-name{font-weight:700;color:var(--text);min-width:130px}
+.sheet-desc{color:var(--muted)}
+
+.ev-card{background:linear-gradient(135deg,#080d1a,#120d2e);border:1px solid rgba(109,66,245,.3);border-radius:var(--radius);padding:15px;margin-bottom:12px}
+.ev-id{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;margin-bottom:3px;font-weight:600}
+.ev-name{font-size:17px;font-weight:800;margin-bottom:2px;color:#fff}
+.ev-meta{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:12px;line-height:1.5}
+.ev-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.ev-stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:9px;text-align:center}
+.ev-stat-val{font-size:13px;font-weight:800;color:#fff}
+.ev-stat-lbl{font-size:8px;color:rgba(255,255,255,.35);margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+.ev-stat.gold .ev-stat-val{color:var(--gold)}.ev-stat.green .ev-stat-val{color:#34d399}
+.ev-actions{display:flex;gap:6px;flex-wrap:wrap}
+.ev-action-btn{flex:1;min-width:80px;padding:8px;border:none;border-radius:9px;font-size:10px;font-weight:800;cursor:pointer;transition:all .15s;text-align:center}
+.ev-action-btn:active{transform:scale(.96)}
+.ea-wrapup{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.25)}
+.ea-edit{background:rgba(109,66,245,.15);color:#a78bfa;border:1px solid rgba(109,66,245,.25)}
+.ea-note{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
+.ea-done{background:rgba(244,63,94,.12);color:#fb7185;border:1px solid rgba(244,63,94,.2)}
+
+.bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.bd-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px}
+.bd-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.bd-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)}
+.bd-row:last-child{border-bottom:none}.bd-row-key{color:var(--soft)}.bd-row-val{font-weight:700;color:#34d399}
+
+.sub-person{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px}
+.sub-person-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.sub-person-name{font-size:12px;font-weight:700}
+.sub-person-total{font-size:13px;font-weight:900;color:#fb7185}
+.sub-pay-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);padding:2px 0;border-top:1px solid var(--border);margin-top:3px}
+
+.tx-list{list-style:none}
+.tx-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.tx-item:last-child{border-bottom:none}
+.tx-label.income{font-size:12px;font-weight:700;color:#34d399}
+.tx-label.expense{font-size:12px;font-weight:700;color:#fb7185}
+.tx-meta{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tx-amt.income{font-size:14px;font-weight:900;color:#34d399;white-space:nowrap;margin-left:8px}
+.tx-amt.expense{font-size:14px;font-weight:900;color:#fb7185;white-space:nowrap;margin-left:8px}
+.tx-divider{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:9px 0 3px;border-top:1px solid var(--border);margin-top:3px}
+
+.dep-card{background:linear-gradient(135deg,rgba(245,158,11,.09),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.25);border-radius:11px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.dep-card:hover{border-color:var(--gold)}
+.dep-top{display:flex;justify-content:space-between;align-items:flex-start}
+.dep-name{font-size:13px;font-weight:700}.dep-bal{font-size:14px;font-weight:900;color:var(--gold)}
+.dep-meta{font-size:10px;color:var(--muted);margin-top:2px}
+
+.gl-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.gl-row:last-child{border-bottom:none}
+.gl-label{font-size:12px;font-weight:700}
+.gl-label.income{color:#34d399}.gl-label.expense{color:#fb7185}
+.gl-meta{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
+.gl-amt.income{font-size:14px;font-weight:900;color:#34d399;white-space:nowrap;margin-left:8px}
+.gl-amt.expense{font-size:14px;font-weight:900;color:#fb7185;white-space:nowrap;margin-left:8px}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;text-align:center}
+.stat-val{font-size:20px;font-weight:900}
+.stat-val.pos{color:#34d399}.stat-val.neg{color:#fb7185}.stat-val.gold{color:var(--gold)}.stat-val.cyan{color:var(--cyan)}
+.stat-lbl{font-size:9px;color:var(--muted);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.prog-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.compare-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.compare-row:last-child{border-bottom:none}.compare-row.total{font-weight:800;padding-top:9px}
+.compare-label{color:var(--soft);font-weight:600}.compare-cur{font-weight:700;text-align:right;min-width:76px}
+.compare-prev{color:var(--muted);text-align:right;min-width:76px}.compare-chg{font-size:10px;text-align:right;min-width:54px}
+.chg-pos{color:#34d399}.chg-neg{color:#fb7185}
+.acct-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.acct-row:last-child{border-bottom:none}
+.acct-name{font-size:12px;font-weight:700}.acct-details{font-size:10px;color:var(--muted);margin-top:2px}
+.acct-net{font-size:14px;font-weight:900}
+.outstanding-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
+.outstanding-row:last-child{border-bottom:none}
+.or-name{font-weight:700}.or-date{font-size:10px;color:var(--muted);margin-top:2px}.or-amount{font-weight:900;color:var(--gold);font-size:14px}
+.pl-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;gap:6px}
+.pl-row:last-child{border-bottom:none}.pl-info{flex:1;min-width:0}
+.pl-name{font-weight:700;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pl-meta{font-size:9px;color:var(--muted);margin-top:1px}
+.pl-profit{font-weight:900;font-size:12px;text-align:right;white-space:nowrap}
+
+.eq-item{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.eq-thumb{width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px}
+.eq-thumb img{width:50px;height:50px;border-radius:8px;object-fit:cover}
+.eq-body{flex:1;min-width:0}
+.eq-name{font-size:13px;font-weight:800;color:var(--text)}
+.eq-cat{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;margin-left:5px}
+.cat-speakers{background:rgba(109,66,245,.15);color:#a78bfa}.cat-lighting{background:rgba(245,158,11,.15);color:#fbbf24}
+.cat-effects{background:rgba(244,63,94,.15);color:#fb7185}.cat-dj{background:rgba(16,185,129,.15);color:#34d399}
+.cat-cables{background:rgba(100,116,139,.15);color:#94a3b8}.cat-visual{background:rgba(6,182,212,.15);color:#22d3ee}
+.cat-other{background:rgba(100,116,139,.12);color:var(--soft)}
+.eq-meta{display:flex;flex-wrap:wrap;gap:7px;font-size:10px;color:var(--muted);margin-top:4px}
+.eq-actions{display:flex;gap:5px;margin-top:7px}
+.condition-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px}
+.cond-excellent{background:rgba(16,185,129,.15);color:#34d399}.cond-good{background:rgba(109,66,245,.15);color:#a78bfa}
+.cond-fair{background:rgba(245,158,11,.15);color:#fbbf24}.cond-poor{background:rgba(244,63,94,.15);color:#fb7185}
+
+.mile-summary{background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(6,182,212,.05));border:1px solid rgba(6,182,212,.25);border-radius:12px;padding:14px;margin-bottom:12px}
+.mile-total{font-size:28px;font-weight:900;color:var(--cyan)}
+.mile-deduction{font-size:13px;color:rgba(6,182,212,.7);margin-top:2px}
+.mile-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}
+.mile-row:last-child{border-bottom:none}.mile-dest{font-weight:700;color:var(--text)}
+.mile-info{font-size:10px;color:var(--muted);margin-top:2px}.mile-dist{font-weight:900;color:var(--cyan);font-size:13px;white-space:nowrap}
+.auto-badge{display:inline-block;font-size:9px;font-weight:700;background:rgba(6,182,212,.15);color:var(--cyan);padding:2px 6px;border-radius:5px;margin-left:4px}
+.calc-btn{display:inline-block;padding:6px 12px;font-size:11px;font-weight:700;border:none;border-radius:8px;cursor:pointer;background:rgba(6,182,212,.2);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+
+.wu-section{margin-bottom:16px}
+.wu-section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.wu-section-title button{background:rgba(109,66,245,.2);color:#a78bfa;border:1px solid rgba(109,66,245,.3);padding:3px 9px;border-radius:7px;font-size:9px;font-weight:700;cursor:pointer}
+.tx-entry{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px;position:relative}
+.tx-entry .remove-btn{position:absolute;top:9px;right:9px;background:rgba(244,63,94,.12);color:#fb7185;border:1px solid rgba(244,63,94,.2);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px}
+.tx-entry .row2,.tx-entry .row3{margin-bottom:7px}
+.wu-preview{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:11px;padding:12px;margin-bottom:14px;display:none}
+.wu-preview-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
+.wu-preview-total{font-weight:900;font-size:14px;padding-top:7px;border-top:1px solid rgba(16,185,129,.2);margin-top:5px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-bg.show{opacity:1;pointer-events:all}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px 15px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .25s;border-top:1px solid var(--border)}
+.modal-bg.show .modal{transform:translateY(0)}
+.modal-title{font-size:15px;font-weight:800;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;color:var(--text)}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+.modal-close{background:var(--card2);border:1px solid var(--border);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:13px;color:var(--soft);display:flex;align-items:center;justify-content:center}
+.desc-prev{background:rgba(109,66,245,.07);border:1px solid rgba(109,66,245,.2);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:11px;color:var(--soft);font-style:italic;display:none}
+.desc-prev strong{color:var(--accent);font-style:normal;display:block;margin-bottom:3px}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;vertical-align:middle;text-transform:uppercase;letter-spacing:.3px}
+.badge-booked{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.2)}
+.badge-completed{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.2)}
+.badge-cancelled{background:rgba(244,63,94,.15);color:#fb7185;border:1px solid rgba(244,63,94,.2)}
+
+#scr-calendar{background:#f4f2ef}
+.planner-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-nav-title{font-size:17px;font-weight:900;color:#1e1b40}
+.cal-nav-sub{font-size:10px;color:#888;margin-top:1px}
+.cal-btn{width:34px;height:34px;border-radius:50%;border:2px dashed #c4b5fd;background:#f0eeff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:#6d42f5}
+.cal-btn:active{transform:scale(.91)}
+.cal-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px}
+.cal-wd-cell{text-align:center;font-size:8px;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:.5px;padding:3px 0}
+.cal-wd-cell.wknd{color:#f06292}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{min-height:46px;border-radius:9px;padding:3px;cursor:pointer;transition:all .15s;border:1.5px solid transparent}
+.cal-day:hover{background:#f8f6ff;border-color:#d4bbff}
+.cal-day.today{background:linear-gradient(135deg,#6d42f515,#6d42f508);border-color:#c4b5fd !important}
+.cal-day.other-month .cal-day-num{color:#ccc}
+.cal-day-num{font-size:10px;font-weight:700;color:#3d3560;text-align:center}
+.cal-day.today .cal-day-num{color:#6d42f5;font-weight:900}
+.cal-day.wknd .cal-day-num{color:#f06292}
+.cal-pill{font-size:7px;font-weight:700;border-radius:3px;padding:1px 3px;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.3;color:#fff}
+.cal-more{font-size:7px;color:#aaa;text-align:center;margin-top:1px}
+.day-detail{background:linear-gradient(135deg,#f0eeff,#fef0f4);border-radius:13px;padding:13px;margin-bottom:12px;border:1.5px solid #d4bbff;display:none}
+.day-detail.show{display:block}
+.day-detail-title{font-size:13px;font-weight:900;color:#3d3560;margin-bottom:9px}
+.day-ev{background:#fff;border-radius:9px;padding:9px 11px;margin-bottom:7px;border-left:4px solid #6d42f5;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.day-ev:last-child{margin-bottom:0}
+.day-ev-title{font-size:12px;font-weight:700;color:#2d2640;margin-bottom:1px}
+.day-ev-time{font-size:10px;color:#888}.day-ev-loc{font-size:10px;color:#6d42f5;margin-top:2px}
+.upcoming-list{list-style:none}
+.upcoming-item{display:flex;gap:10px;padding:10px 0;border-bottom:1.5px dashed #eee;align-items:flex-start}
+.upcoming-item:last-child{border-bottom:none}
+.upcoming-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid #fff;box-shadow:0 0 0 2px currentColor}
+.upcoming-title{font-size:12px;font-weight:700;color:#2d2640;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.upcoming-meta{font-size:10px;color:#888;margin-top:1px}
+.planner-heading{font-size:15px;font-weight:900;color:#2d2640;display:block;margin-bottom:12px;padding-bottom:5px;border-bottom:2px solid;border-image:linear-gradient(90deg,#c4b5fd,#fbc2eb) 1}
+.cal-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#666}
+.cal-legend-dot{width:7px;height:7px;border-radius:50%}
+
+/* Setup banner */
+.setup-banner{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.08));border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:14px;margin-bottom:14px;display:none}
+.setup-banner.show{display:block}
+.setup-banner-title{font-size:12px;font-weight:800;color:var(--gold);margin-bottom:6px}
+.setup-banner p{font-size:11px;color:var(--soft);margin-bottom:8px;line-height:1.6}
+.setup-banner input{font-size:12px;margin-bottom:7px}
+.setup-banner button{width:100%;padding:10px;border:none;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-weight:800;cursor:pointer;font-size:13px}
+
+.empty{text-align:center;padding:22px 14px;color:var(--muted)}
+.empty i{font-size:28px;display:block;margin-bottom:7px;opacity:.35}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:18px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-msg{text-align:center;padding:12px;color:#fb7185;font-size:11px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);color:var(--text);padding:11px 20px;border-radius:25px;font-size:12px;font-weight:600;z-index:999;opacity:0;transition:opacity .25s,transform .25s;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.6);pointer-events:none;border:1px solid var(--border)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#064e3b;border-color:#059669;color:#34d399}
+.toast.err{background:#4c0519;border-color:#e11d48;color:#fb7185}
+@media(min-width:480px){.ev-stats{grid-template-columns:repeat(4,1fr)}.stat-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:360px){.ev-stats{grid-template-columns:1fr 1fr}.row3{grid-template-columns:1fr 1fr}.cal-day{min-height:36px}}
+</style>
+</head>
+<body>
+
+<!-- Setup Banner (shown if SCRIPT_URL not set) -->
+<div class="setup-banner" id="setup-banner">
+  <div class="setup-banner-title">⚙️ One-time setup required</div>
+  <p>Paste your Google Apps Script exec URL below to connect this app to your Google Sheet.</p>
+  <input id="setup-url-input" placeholder="https://script.google.com/macros/s/.../exec">
+  <button onclick="saveScriptUrl()">💾 Connect to Google Sheet</button>
+</div>
+
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="logo-mark">CK</div>
+    <div><div class="hdr-title">CK Events</div><div class="hdr-sub">& Equipment LLC</div></div>
+  </div>
+  <div class="hdr-date" id="hdr-date"></div>
+</div>
+
+<div class="tabs">
+  <div class="tab on" onclick="nav('events',this)"><i>📅</i>Events</div>
+  <div class="tab" onclick="nav('pay',this)"><i>💰</i>Pay</div>
+  <div class="tab" onclick="nav('contacts',this)"><i>👥</i>People</div>
+  <div class="tab" onclick="nav('calendar',this)"><i>🗓️</i>Cal</div>
+  <div class="tab" onclick="nav('reports',this)"><i>📊</i>Reports</div>
+  <div class="tab" onclick="nav('equipment',this)"><i>🎛️</i>Gear</div>
+  <div class="tab" onclick="nav('mileage',this)"><i>🚗</i>Miles</div>
+  <div class="tab" onclick="nav('ledger',this)"><i>📒</i>Books</div>
+</div>
+
+<div class="wrap">
+
+<!-- ══ EVENTS ══ -->
+<div id="scr-events" class="scr on">
+  <div class="sheet-info">
+    <div class="sheet-info-title">📋 Where data saves in Google Sheets</div>
+    <div class="sheet-row"><span class="sheet-name">EVENTS</span><span class="sheet-desc">New bookings, venue, quote, team, equipment, status</span></div>
+    <div class="sheet-row"><span class="sheet-name">CONTACTS</span><span class="sheet-desc">Client / DJ / vendor auto-created or matched</span></div>
+    <div class="sheet-row"><span class="sheet-name">MILEAGE</span><span class="sheet-desc">Auto-logged from venue address (round trip)</span></div>
+    <div class="sheet-row"><span class="sheet-name">EQUIP_LOG</span><span class="sheet-desc">Auto-logs usage for matching equipment items</span></div>
+    <div class="sheet-row"><span class="sheet-name">Google Calendar</span><span class="sheet-desc">Event created with address, team, equipment, reminders</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 New Event Booking</div>
+    <div class="fg"><label>Client / Customer Name *</label>
+      <div class="ac"><input id="e-cl" placeholder="Type to search contacts or enter new…" oninput="acContact(this,'e-cid','e-ph','e-em')" autocomplete="off"><div class="acd" id="e-cl-dd"></div></div>
+      <input type="hidden" id="e-cid">
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Phone</label><input type="tel" id="e-ph" placeholder="Auto-filled"></div>
+      <div class="fg"><label>Email</label><input type="email" id="e-em" placeholder="Auto-filled"></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Event Type *</label>
+        <select id="e-ty"><option value="">Select…</option><option>Wedding</option><option>Sangeet</option><option>Birthday / Sweet 16</option><option>Baby Shower</option><option>Garba / Navratri</option><option>Corporate / Party</option><option>Equipment Rental</option><option>Other</option></select>
+      </div>
+      <div class="fg"><label>Contact Type</label>
+        <select id="e-ctype"><option value="Client">Client</option><option value="DJ">DJ</option><option value="Vendor">Vendor</option></select>
+      </div>
+    </div>
+    <div class="row3">
+      <div class="fg"><label>Date *</label><input type="date" id="e-dt"></div>
+      <div class="fg"><label>Start</label><input type="time" id="e-st" value="17:00"></div>
+      <div class="fg"><label>End</label><input type="time" id="e-et" value="22:00"></div>
+    </div>
+    <div class="fg"><label>Venue Name *</label><input id="e-vn" placeholder="e.g. Royal Albert Palace"></div>
+    <div class="fg">
+      <label>Full Address <span style="color:var(--cyan);font-weight:600">(auto-calculates mileage)</span></label>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="ac" style="flex:1">
+          <input id="e-va" placeholder="1348 Oak Tree Rd, Edison NJ 08820" oninput="acAddress(this,'e-va-dd')" autocomplete="off">
+          <div class="acd" id="e-va-dd"></div>
+        </div>
+        <button class="calc-btn" onclick="calcMilePreview()">📍 Calc</button>
+      </div>
+      <div id="mile-preview-inline" style="font-size:11px;color:var(--cyan);margin-top:4px;display:none"></div>
+    </div>
+    <div class="fg"><label>Quote ($) *</label><input type="number" id="e-qt" placeholder="0" min="0"></div>
+    <div class="fg">
+      <label>Equipment / Services</label>
+      <div class="chips" id="eq-chips">
+        <span class="chip" onclick="tc(this)">2 Tops</span><span class="chip" onclick="tc(this)">4 Tops</span><span class="chip" onclick="tc(this)">2 Subs</span><span class="chip" onclick="tc(this)">4 Subs</span><span class="chip" onclick="tc(this)">Sparklers</span><span class="chip" onclick="tc(this)">Dry Ice</span><span class="chip" onclick="tc(this)">CO₂ Gun</span><span class="chip" onclick="tc(this)">Moving Heads</span><span class="chip" onclick="tc(this)">Uplights</span><span class="chip" onclick="tc(this)">LED Wall</span><span class="chip" onclick="tc(this)">Dance Floor</span><span class="chip" onclick="tc(this)">Photo Booth</span><span class="chip" onclick="tc(this)">Facade</span><span class="chip" onclick="tc(this)">DJ Service</span><span class="chip" onclick="tc(this)">MC Service</span><span class="chip" onclick="tc(this)">Generator</span><span class="chip" onclick="tc(this)">Dhol</span><span class="chip" onclick="tc(this)">2 TVs</span><span class="chip" onclick="tc(this)">Truss</span><span class="chip" onclick="tc(this)">LED Screen</span>
+        <span class="chip chip-add" onclick="toggleRow('eq-custom-row')">＋ Add</span>
+      </div>
+      <div class="custom-row" id="eq-custom-row">
+        <input id="eq-custom-inp" placeholder="Custom item…">
+        <button onclick="saveEquipItem()">💾 Save</button>
+        <button onclick="addTmpChip('eq-chips','eq-custom-inp','eq-custom-row')" style="background:rgba(16,185,129,.2);color:#34d399;border-color:rgba(16,185,129,.3)">+Once</button>
+      </div>
+      <div id="eq-saved-chips" class="chips" style="margin-top:5px"></div>
+    </div>
+    <div class="fg">
+      <label>Team Members</label>
+      <div class="chips" id="tm-chips">
+        <span class="chip" onclick="tc(this)">Kirtan</span><span class="chip" onclick="tc(this)">Chintan</span><span class="chip" onclick="tc(this)">Parth P</span><span class="chip" onclick="tc(this)">Parth S</span><span class="chip" onclick="tc(this)">Dev</span><span class="chip" onclick="tc(this)">Vraj</span><span class="chip" onclick="tc(this)">Shivam</span><span class="chip" onclick="tc(this)">Deep</span><span class="chip" onclick="tc(this)">Jeff</span><span class="chip" onclick="tc(this)">Jeffrey</span><span class="chip" onclick="tc(this)">Chad</span><span class="chip" onclick="tc(this)">Sunny</span><span class="chip" onclick="tc(this)">Setu</span>
+        <span class="chip chip-add" onclick="toggleRow('tm-custom-row')">＋ Add</span>
+      </div>
+      <div class="custom-row" id="tm-custom-row">
+        <input id="tm-custom-inp" placeholder="Member name…">
+        <button onclick="saveTeamMember()">💾 Save</button>
+        <button onclick="addTmpChip('tm-chips','tm-custom-inp','tm-custom-row')" style="background:rgba(16,185,129,.2);color:#34d399;border-color:rgba(16,185,129,.3)">+Once</button>
+      </div>
+      <div id="tm-saved-chips" class="chips" style="margin-top:5px"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="e-nt" placeholder="Music preferences, setup time, restrictions…"></textarea></div>
+    <button class="btn btn-primary" id="e-submit-btn" onclick="submitEvent()">📅 Book Event + Create Calendar</button>
+    <button class="btn btn-secondary" onclick="resetEventForm()">🔄 Clear</button>
+  </div>
+  <div class="card">
+    <div class="card-title">✏️ Edit Existing Event</div>
+    <div class="fg">
+      <label>Search by Client Name, Venue, Date, or Event ID</label>
+      <div class="ac"><input id="ed-search" placeholder="Harman · Royal Albert · Priya · CKE20260703…" oninput="acEventEdit(this)" autocomplete="off"><div class="acd" id="ed-search-dd"></div></div>
+      <input type="hidden" id="ed-eid">
+    </div>
+    <div id="edit-form" style="display:none">
+      <div class="row2">
+        <div class="fg"><label>Event Type</label><select id="ed-ty"><option value="">No change</option><option>Wedding</option><option>Sangeet</option><option>Birthday / Sweet 16</option><option>Baby Shower</option><option>Garba / Navratri</option><option>Corporate / Party</option><option>Equipment Rental</option><option>Other</option></select></div>
+        <div class="fg"><label>Status</label><select id="ed-status"><option value="Booked">Booked</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Date</label><input type="date" id="ed-dt"></div>
+        <div class="fg"><label>Start</label><input type="time" id="ed-st"></div>
+        <div class="fg"><label>End</label><input type="time" id="ed-et"></div>
+      </div>
+      <div class="fg"><label>Venue</label><input id="ed-vn"></div>
+      <div class="fg"><label>Address</label>
+        <div class="ac"><input id="ed-va" oninput="acAddress(this,'ed-va-dd')" autocomplete="off"><div class="acd" id="ed-va-dd"></div></div>
+      </div>
+      <div class="fg"><label>Quote ($)</label><input type="number" id="ed-qt" min="0"></div>
+      <div class="fg"><label>Equipment (comma-separated)</label><input id="ed-eq"></div>
+      <div class="fg"><label>Team (comma-separated)</label><input id="ed-tm"></div>
+      <div class="fg"><label>Notes</label><textarea id="ed-nt"></textarea></div>
+      <button class="btn btn-gold" id="ed-submit-btn" onclick="submitEditEvent()">💾 Save + Update Calendar</button>
+      <button class="btn btn-secondary" onclick="resetEditForm()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAYMENTS ══ -->
+<div id="scr-pay" class="scr">
+  <div class="card">
+    <div class="card-title">⏳ Pending Balances <span class="ct-badge" id="pending-count"></span></div>
+    <div id="pending-list"><div class="spin"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔍 Find Event</div>
+    <div class="fg">
+      <div class="ac"><input id="p-search" placeholder="Priya · Sweety Shah · Royal Albert · CKE20260703…" oninput="acEvent(this)" autocomplete="off"><div class="acd" id="p-search-dd"></div></div>
+      <input type="hidden" id="p-eid">
+    </div>
+  </div>
+  <div id="p-summary" style="display:none">
+    <div class="ev-card">
+      <div class="ev-id" id="p-sid"></div>
+      <div class="ev-name" id="p-sname"></div>
+      <div class="ev-meta" id="p-smeta"></div>
+      <div class="ev-stats">
+        <div class="ev-stat"><div class="ev-stat-val" id="p-quote">$0</div><div class="ev-stat-lbl">Quote</div></div>
+        <div class="ev-stat green"><div class="ev-stat-val" id="p-received">$0</div><div class="ev-stat-lbl">Received</div></div>
+        <div class="ev-stat gold"><div class="ev-stat-val" id="p-balance">$0</div><div class="ev-stat-lbl">Balance</div></div>
+        <div class="ev-stat green"><div class="ev-stat-val" id="p-profit">$0</div><div class="ev-stat-lbl">Profit</div></div>
+      </div>
+      <div class="ev-actions" style="margin-top:10px">
+        <button class="ev-action-btn ea-wrapup" onclick="openWrapup()">✅ Wrap-Up</button>
+        <button class="ev-action-btn ea-edit" onclick="openPayEditEvent()">✏️ Edit</button>
+        <button class="ev-action-btn ea-note" onclick="openCalNoteModal()">📝 Cal Note</button>
+        <button class="ev-action-btn ea-done" onclick="markComplete()">🏁 Complete</button>
+      </div>
+    </div>
+    <div class="card" id="p-breakdown-card" style="display:none">
+      <div class="card-title">💰 Income Breakdown</div>
+      <div class="bd-grid">
+        <div class="bd-box"><div class="bd-label">Who Collected (Account)</div><div id="bd-by-account"></div></div>
+        <div class="bd-box"><div class="bd-label">Payment Method</div><div id="bd-by-method"></div></div>
+      </div>
+    </div>
+    <div class="card" id="p-sub-card" style="display:none">
+      <div class="card-title">👥 Payments Made to Team</div>
+      <div id="p-sub-breakdown"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">➕ Add Transaction</div>
+      <div class="fg"><label>Type *</label>
+        <select id="p-type" onchange="onTxType()">
+          <option value="">Select…</option>
+          <optgroup label="💚 INCOME"><option value="income|deposit">💵 Deposit / Advance</option><option value="income|partial">💵 Partial Payment</option><option value="income|final">💵 Final Payment</option><option value="income|tip">💵 Tip</option><option value="income|equipment_rental">💵 Equipment Rental Income</option><option value="income|other_income">💵 Other Income</option></optgroup>
+          <optgroup label="🔴 EXPENSES"><option value="expense|dj_payment">💸 DJ Payment</option><option value="expense|mc_payment">💸 MC Payment</option><option value="expense|labor">💸 Team / Labor</option><option value="expense|vendor_rental">💸 Vendor Rental</option><option value="expense|dry_ice">💸 Dry Ice / Supplies</option><option value="expense|gas_travel">💸 Gas / Toll / Parking</option><option value="expense|food">💸 Food / Meals</option><option value="expense|permit">💸 Permit / Fee</option><option value="expense|bank_fee">💸 Bank / Processing Fee</option><option value="expense|maintenance">💸 Maintenance / Repair</option><option value="expense|equip_purchase">💸 Equipment Purchase</option><option value="expense|other_expense">💸 Other Expense</option></optgroup>
+        </select>
+      </div>
+      <div class="fg" id="p-person-wrap" style="display:none">
+        <label id="p-person-lbl">Person</label>
+        <div class="ac"><input id="p-person" placeholder="Search contacts…" oninput="acContact(this,'p-pid',null,null)" autocomplete="off"><div class="acd" id="p-person-dd"></div></div>
+        <input type="hidden" id="p-pid">
+      </div>
+      <div class="row2">
+        <div class="fg"><label>Amount ($) *</label><input type="number" id="p-amount" placeholder="0.00" min="0" step="0.01" oninput="updateDescPreview()"></div>
+        <div class="fg"><label>Date *</label><input type="date" id="p-date"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>Method *</label><select id="p-method"><option value="">Select…</option><option>Cash</option><option>Zelle</option><option>Venmo</option><option>Check</option><option>Bank Transfer</option><option>Square</option><option>Credit Card</option></select></div>
+        <div class="fg"><label id="p-account-lbl">Account</label>
+          <select id="p-account"><option value="Kirtan">Kirtan (Personal)</option><option value="Chintan">Chintan (Personal)</option><option value="CKEvents Bank">CKEvents Bank</option></select>
+        </div>
+      </div>
+      <div class="fg"><label>Notes</label><input id="p-notes" placeholder="Optional…"></div>
+      <div class="desc-prev" id="p-desc-preview"><strong>📝 Auto-Description</strong><span id="p-desc-text"></span></div>
+      <button class="btn btn-success" onclick="submitTx()">✅ Save Transaction</button>
+      <button class="btn btn-secondary" onclick="resetTxForm()">🔄 New</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Transaction History <span class="ct-badge" id="p-tx-summary"></span></div>
+      <ul class="tx-list" id="p-tx-list"><li><div class="spin"></div></li></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTACTS ══ -->
+<div id="scr-contacts" class="scr">
+  <div class="card" style="margin-bottom:12px"><div class="fg" style="margin-bottom:0"><label>🔍 Search</label><input id="ct-search" placeholder="Name, phone, or email…" oninput="filterContacts(this.value)"></div></div>
+  <div class="card"><div class="card-title">👥 All Contacts <span class="ct-badge" id="ct-count"></span></div><div id="ct-list"><div class="spin"></div></div></div>
+  <div class="card">
+    <div class="card-title">➕ Add Contact</div>
+    <div class="fg"><label>Full Name *</label><input id="c-name" placeholder="e.g. DJ Chad or Harman Singh"></div>
+    <div class="row2"><div class="fg"><label>Type</label><select id="c-type"><option value="Client">Client</option><option value="DJ">DJ</option><option value="Vendor">Vendor</option><option value="Team">Team</option><option value="Venue">Venue</option></select></div><div class="fg"></div></div>
+    <div class="row2"><div class="fg"><label>Phone</label><input type="tel" id="c-phone"></div><div class="fg"><label>Email</label><input type="email" id="c-email"></div></div>
+    <div class="fg"><label>Notes (rate, details…)</label><input id="c-notes" placeholder="e.g. $1,200 flat rate"></div>
+    <button class="btn btn-primary" onclick="saveContact()">💾 Save Contact</button>
+  </div>
+</div>
+
+<!-- ══ CALENDAR ══ -->
+<div id="scr-calendar" class="scr">
+  <div class="planner-card">
+    <div class="cal-nav">
+      <button class="cal-btn" onclick="calNav(-1)">‹</button>
+      <div style="text-align:center"><div class="cal-nav-title" id="cal-month-label">Loading…</div><div class="cal-nav-sub">Synced · Google Calendar</div></div>
+      <button class="cal-btn" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-wd"><div class="cal-wd-cell wknd">Sun</div><div class="cal-wd-cell">Mon</div><div class="cal-wd-cell">Tue</div><div class="cal-wd-cell">Wed</div><div class="cal-wd-cell">Thu</div><div class="cal-wd-cell">Fri</div><div class="cal-wd-cell wknd">Sat</div></div>
+    <div class="cal-grid" id="cal-grid"><div style="grid-column:1/-1;padding:20px;text-align:center"><div class="spin"></div></div></div>
+    <div class="cal-legend" id="cal-legend"></div>
+  </div>
+  <div class="day-detail planner-card" id="day-detail"><div class="day-detail-title" id="day-detail-title"></div><div id="day-detail-events"></div></div>
+  <div class="planner-card">
+    <span class="planner-heading">📝 Add Note to Calendar Event</span>
+    <div class="fg"><label>Find Event</label><div class="ac"><input id="cal-note-search" placeholder="Search event…" oninput="acEvent(this,'cal-note-dd','cal-note-eid')" autocomplete="off"><div class="acd" id="cal-note-dd"></div></div><input type="hidden" id="cal-note-eid"></div>
+    <div class="fg"><label>Category</label><select id="cal-note-cat"><option value="📝 NOTE">📝 General Note</option><option value="💰 RECEIPT">💰 Receipt / Payment</option><option value="🎛️ EQUIPMENT">🎛️ Equipment Update</option><option value="👥 TEAM UPDATE">👥 Team Update</option><option value="⚠️ IMPORTANT">⚠️ Important</option><option value="✅ COMPLETED">✅ Event Completed</option><option value="📞 CLIENT CALL">📞 Client Call</option></select></div>
+    <div class="fg"><textarea id="cal-note-text" placeholder="Enter note…"></textarea></div>
+    <button class="btn btn-gold" onclick="submitCalNote()">📅 Add to Google Calendar</button>
+  </div>
+  <div class="planner-card"><span class="planner-heading">✨ Upcoming 60 Days</span><ul class="upcoming-list" id="upcoming-list"><li><div class="spin"></div></li></ul></div>
+</div>
+
+<!-- ══ REPORTS ══ -->
+<div id="scr-reports" class="scr">
+  <div class="card">
+    <div class="card-title">📊 Report Period</div>
+    <div class="row2">
+      <div class="fg"><label>Year</label><select id="r-year" onchange="loadReport()"><option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option><option value="all">All Time</option></select></div>
+      <div class="fg" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="loadReport()" style="margin-bottom:12px">🔄 Refresh</button></div>
+    </div>
+  </div>
+  <div class="stat-grid" id="r-stats"><div class="stat-box"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">⏳ Outstanding Receivables <span class="ct-badge" id="r-outstanding-total"></span></div><div id="r-outstanding"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">💳 Account Balances</div><div id="r-accounts"><div class="spin"></div></div></div>
+  <div class="card" id="r-compare-card" style="display:none"><div class="card-title" id="r-compare-title">📈 Year Comparison</div><div id="r-compare"></div></div>
+  <div class="card"><div class="card-title">📅 Monthly Breakdown</div><div id="r-monthly"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">🎪 Event Profit / Loss</div><div id="r-event-pl"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">📦 Expenses by Category</div><div id="r-cats"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">🚗 Mileage Deduction</div><div id="r-mileage"><div class="spin"></div></div></div>
+  <div class="card"><div class="card-title">📋 Subcontractors (1099)</div><div id="r-contractors"><div class="spin"></div></div></div>
+</div>
+
+<!-- ══ EQUIPMENT ══ -->
+<div id="scr-equipment" class="scr">
+  <div class="card">
+    <div class="card-title">➕ Add Equipment</div>
+    <div class="row2"><div class="fg"><label>Name *</label><input id="eq-name" placeholder="e.g. JBL SRX828SP"></div><div class="fg"><label>Category *</label><select id="eq-cat"><option value="Speakers">Speakers / Tops</option><option value="Subwoofers">Subwoofers</option><option value="Lighting">Lighting</option><option value="Effects">Effects</option><option value="DJ Gear">DJ Gear / Controllers</option><option value="Visual">Visual / LED</option><option value="Cables">Cables / Accessories</option><option value="Power">Power / Generator</option><option value="Truss">Truss / Rigging</option><option value="Other">Other</option></select></div></div>
+    <div class="row2"><div class="fg"><label>Brand</label><input id="eq-brand" placeholder="JBL, Chauvet…"></div><div class="fg"><label>Model</label><input id="eq-model" placeholder="SRX828SP"></div></div>
+    <div class="row2"><div class="fg"><label>Serial #</label><input id="eq-serial" placeholder="Optional"></div><div class="fg"><label>Condition</label><select id="eq-condition"><option value="Excellent">Excellent</option><option value="Good" selected>Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option></select></div></div>
+    <div class="row3"><div class="fg"><label>Purchase Date</label><input type="date" id="eq-pdate"></div><div class="fg"><label>Price ($)</label><input type="number" id="eq-pprice" placeholder="0" min="0"></div><div class="fg"><label>Vendor</label><input id="eq-vendor" placeholder="Guitar Center…"></div></div>
+    <div class="fg"><label>Notes</label><input id="eq-notes" placeholder="Warranty, details…"></div>
+    <button class="btn btn-cyan" onclick="addEquipment()">💾 Add to Inventory</button>
+  </div>
+  <div class="stat-grid" id="eq-stats-grid" style="margin-bottom:12px"><div class="stat-box"><div class="spin"></div></div></div>
+  <div class="card">
+    <div class="card-title">🎛️ Inventory <span class="ct-badge" id="eq-count"></span></div>
+    <div class="fg" style="margin-bottom:10px"><input id="eq-filter" placeholder="Filter by name or category…" oninput="filterEquipment(this.value)"></div>
+    <div id="eq-list"><div class="spin"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Log Usage / Maintenance</div>
+    <div class="fg"><label>Equipment</label><div class="ac"><input id="eq-log-search" placeholder="Search equipment…" oninput="acEquipment(this)" autocomplete="off"><div class="acd" id="eq-log-dd"></div></div><input type="hidden" id="eq-log-id"></div>
+    <div class="row2"><div class="fg"><label>Type</label><select id="eq-log-type"><option value="Used">Used at Event</option><option value="Maintenance">Maintenance</option><option value="Repair">Repair</option><option value="Inspection">Inspection</option></select></div><div class="fg"><label>Date</label><input type="date" id="eq-log-date"></div></div>
+    <div class="row2"><div class="fg"><label>Cost ($)</label><input type="number" id="eq-log-cost" placeholder="0" min="0"></div><div class="fg"><label>Event ID (if used)</label><input id="eq-log-event" placeholder="CKE20260315…"></div></div>
+    <div class="fg"><label>Notes</label><input id="eq-log-notes" placeholder="Details, repair shop…"></div>
+    <button class="btn btn-primary" onclick="logEquipEvent()">📝 Save Entry</button>
+  </div>
+</div>
+
+<!-- ══ MILEAGE ══ -->
+<div id="scr-mileage" class="scr">
+  <div class="mile-summary" id="mile-summary-box">
+    <div class="mile-total" id="mile-total">0.0 mi</div>
+    <div class="mile-deduction" id="mile-deduction">Estimated deduction: $0.00</div>
+    <div style="font-size:10px;color:rgba(6,182,212,.6);margin-top:5px">📍 From: 120 College Drive, Edison, NJ · IRS $0.70/mile</div>
+  </div>
+  <div class="card">
+    <div class="card-title">➕ Log Trip</div>
+    <div class="fg">
+      <label>Destination / Venue</label>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="ac" style="flex:1">
+          <input id="mi-dest" placeholder="Venue name or full address" oninput="acAddressOrEvent(this,'mi-combo-dd','mi-event-id-hidden')" autocomplete="off">
+          <div class="acd" id="mi-combo-dd"></div>
+        </div>
+        <button class="calc-btn" onclick="calcMilesForTrip()">📍 Auto</button>
+      </div>
+      <input type="hidden" id="mi-event-id-hidden">
+    </div>
+    <div class="row3">
+      <div class="fg"><label>Date</label><input type="date" id="mi-date"></div>
+      <div class="fg"><label>Miles One Way</label><input type="number" id="mi-miles" placeholder="0.0" step="0.1" min="0" oninput="updateMilePreview()"></div>
+      <div class="fg"><label>Round Trip?</label><select id="mi-rt" onchange="updateMilePreview()"><option value="yes">Yes (×2)</option><option value="no">One Way</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Driver</label><select id="mi-driver"><option value="Kirtan">Kirtan</option><option value="Chintan">Chintan</option></select></div>
+      <div class="fg"><label>Total Miles (Preview)</label><input id="mi-preview" readonly style="color:var(--cyan);font-weight:700"></div>
+    </div>
+    <div class="fg"><label>Event ID (optional)</label><input id="mi-event-link" placeholder="CKE20260315…"></div>
+    <div class="fg"><label>Notes</label><input id="mi-notes" placeholder="Event name, reason…"></div>
+    <button class="btn btn-cyan" onclick="addMileage()">🚗 Log Trip</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Trip Log</div>
+    <div class="row2" style="margin-bottom:10px">
+      <div class="fg"><label>Year</label><select id="mi-year" onchange="loadMileage()"><option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option></select></div>
+      <div class="fg" style="display:flex;align-items:flex-end"><button class="btn btn-secondary" onclick="loadMileage()" style="margin-bottom:12px">🔄 Refresh</button></div>
+    </div>
+    <div id="mi-list"><div class="spin"></div></div>
+  </div>
+</div>
+
+<!-- ══ GENERAL LEDGER ══ -->
+<div id="scr-ledger" class="scr">
+  <div class="card">
+    <div class="card-title">➕ Log Non-Event Transaction</div>
+    <div class="fg"><label>Direction</label><select id="gl-dir" onchange="onGlDir()"><option value="income">💚 Income</option><option value="expense">🔴 Expense</option></select></div>
+    <div class="fg"><label>Category *</label>
+      <select id="gl-sub">
+        <optgroup label="💚 INCOME"><option value="consulting">Consulting / Outside Work</option><option value="equipment_rental">Equipment Rental Income</option><option value="other_income">Other Income</option></optgroup>
+        <optgroup label="🔴 EXPENSES"><option value="software">Software / Subscription</option><option value="marketing">Marketing</option><option value="insurance">Insurance</option><option value="equip_purchase">Equipment Purchase</option><option value="maintenance">Maintenance / Repair</option><option value="bank_fee">Bank / Processing Fee</option><option value="gas_travel">Gas / Travel</option><option value="food">Food / Meals</option><option value="other_expense">Other Expense</option></optgroup>
+      </select>
+    </div>
+    <div class="fg"><label>From / To</label><input id="gl-person" placeholder="e.g. XYZ Events, Amazon…"></div>
+    <div class="row2">
+      <div class="fg"><label>Amount ($) *</label><input type="number" id="gl-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="fg"><label>Date *</label><input type="date" id="gl-date"></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Method</label><select id="gl-method"><option value="">Select…</option><option>Cash</option><option>Zelle</option><option>Venmo</option><option>Check</option><option>Bank Transfer</option><option>Square</option><option>Credit Card</option></select></div>
+      <div class="fg"><label>Account</label><select id="gl-account"><option value="Kirtan">Kirtan (Personal)</option><option value="Chintan">Chintan (Personal)</option><option value="CKEvents Bank">CKEvents Bank</option></select></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="gl-notes" style="min-height:50px" placeholder="Description…"></textarea></div>
+    <button class="btn btn-purple" onclick="submitGL()">💾 Save to General Ledger</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📒 General Ledger
+      <span class="ct-badge"><select id="gl-year" onchange="loadGL()" style="background:transparent;border:none;color:var(--muted);font-size:10px;padding:0"><option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option></select></span>
+    </div>
+    <div id="gl-stats" style="display:flex;gap:10px;margin-bottom:10px"></div>
+    <div id="gl-list"><div class="spin"></div></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<!-- WRAP-UP MODAL -->
+<div class="modal-bg" id="wrapup-modal-bg" onclick="closeModal('wrapup-modal-bg',event)">
+  <div class="modal">
+    <div class="modal-title">✅ Event Wrap-Up <button class="modal-close" onclick="closeModal('wrapup-modal-bg')">✕</button></div>
+    <div class="modal-sub" id="wrapup-modal-sub"></div>
+    <div class="wu-section"><div class="wu-section-title">💚 Income Received <button onclick="addIncomeRow()">＋ Add</button></div><div id="wu-income-rows"></div></div>
+    <div class="wu-section"><div class="wu-section-title">🔴 Payments Made <button onclick="addExpenseRow()">＋ Add</button></div><div id="wu-expense-rows"></div></div>
+    <div class="wu-section"><div class="wu-section-title">💳 Fees &amp; Other Costs <button onclick="addFeeRow()">＋ Add</button></div><div id="wu-fee-rows"></div></div>
+    <div class="wu-preview" id="wu-preview">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:7px">📊 Summary</div>
+      <div class="wu-preview-row"><span>Total Income</span><span id="wu-prev-inc" style="color:#34d399;font-weight:700">$0</span></div>
+      <div class="wu-preview-row"><span>Total Expenses</span><span id="wu-prev-exp" style="color:#fb7185;font-weight:700">$0</span></div>
+      <div class="wu-preview-row wu-preview-total"><span>Net Profit</span><span id="wu-prev-net" style="font-weight:900">$0</span></div>
+    </div>
+    <button class="btn btn-success" onclick="submitWrapup()">💾 Save All to Sheets + Update Calendar</button>
+    <button class="btn btn-secondary" onclick="closeModal('wrapup-modal-bg')">Cancel</button>
+  </div>
+</div>
+
+<!-- CAL NOTE MODAL -->
+<div class="modal-bg" id="calnote-modal-bg" onclick="closeModal('calnote-modal-bg',event)">
+  <div class="modal">
+    <div class="modal-title">📝 Add Calendar Note <button class="modal-close" onclick="closeModal('calnote-modal-bg')">✕</button></div>
+    <div class="modal-sub" id="calnote-modal-sub"></div>
+    <div class="fg"><label>Category</label><select id="cn-cat"><option value="📝 NOTE">📝 General Note</option><option value="💰 RECEIPT">💰 Receipt</option><option value="🎛️ EQUIPMENT">🎛️ Equipment</option><option value="👥 TEAM UPDATE">👥 Team</option><option value="⚠️ IMPORTANT">⚠️ Important</option><option value="✅ COMPLETED">✅ Completed</option><option value="📞 CLIENT CALL">📞 Client Call</option></select></div>
+    <div class="fg"><textarea id="cn-text" placeholder="Enter note…" style="min-height:90px"></textarea></div>
+    <button class="btn btn-gold" onclick="submitCalNoteFromModal()">📅 Add to Google Calendar</button>
+    <button class="btn btn-secondary" onclick="closeModal('calnote-modal-bg')">Cancel</button>
+  </div>
+</div>
+
+<!-- EQUIPMENT DETAIL MODAL -->
+<div class="modal-bg" id="eq-detail-modal-bg" onclick="closeModal('eq-detail-modal-bg',event)">
+  <div class="modal">
+    <div class="modal-title" id="eq-detail-name">Equipment Detail <button class="modal-close" onclick="closeModal('eq-detail-modal-bg')">✕</button></div>
+    <div class="modal-sub" id="eq-detail-meta"></div>
+    <div id="eq-detail-img" style="margin-bottom:12px;display:none"><img id="eq-detail-photo" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px"></div>
+    <div class="fg"><label>Update Condition</label><select id="eq-edit-condition"><option value="Excellent">Excellent</option><option value="Good">Good</option><option value="Fair">Fair</option><option value="Poor">Poor</option></select></div>
+    <div class="fg"><label>Notes</label><input id="eq-edit-notes"></div>
+    <input type="hidden" id="eq-edit-id">
+    <div id="eq-detail-log"><div class="spin"></div></div>
+    <button class="btn btn-primary" onclick="saveEquipEdit()" style="margin-top:12px">💾 Save Changes</button>
+    <button class="btn btn-sm-red btn-sm" style="width:100%;padding:10px;margin-top:8px;border-radius:11px;font-size:14px" onclick="deactivateEquip()">🗑️ Retire / Sold</button>
+  </div>
+</div>
+
+<!-- CONTACT EDIT MODAL -->
+<div class="modal-bg" id="ct-modal-bg" onclick="closeModal('ct-modal-bg',event)">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Contact <button class="modal-close" onclick="closeModal('ct-modal-bg')">✕</button></div>
+    <input type="hidden" id="ct-edit-id">
+    <div class="fg"><label>Name *</label><input id="ct-edit-name"></div>
+    <div class="fg"><label>Type</label><select id="ct-edit-type"><option>Client</option><option>DJ</option><option>Vendor</option><option>Team</option><option>Venue</option></select></div>
+    <div class="row2"><div class="fg"><label>Phone</label><input type="tel" id="ct-edit-phone"></div><div class="fg"><label>Email</label><input type="email" id="ct-edit-email"></div></div>
+    <div class="fg"><label>Notes</label><input id="ct-edit-notes"></div>
+    <button class="btn btn-primary" onclick="saveCtEdit()">💾 Save Changes</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  ⚡ CK EVENTS — GitHub Pages Frontend
+//  Only change needed from the original:
+//  1. SCRIPT_URL stored in localStorage (set via setup banner)
+//  2. gsr() uses fetch() instead of google.script.run
+//  Everything else is identical.
+// ══════════════════════════════════════════════════════════════
+
+// ── SCRIPT URL CONFIG ─────────────────────────────────────────
+// Stored in localStorage so it's never visible in source code
+// Kirtan sets it once; Chintan sets it once on his phone too.
+function getScriptUrl() {
+  return localStorage.getItem('CK_SCRIPT_URL') || '';
+}
+function saveScriptUrl() {
+  const url = document.getElementById('setup-url-input').value.trim();
+  if (!url.includes('script.google.com')) { toast('Paste the full Apps Script exec URL', 'err'); return; }
+  localStorage.setItem('CK_SCRIPT_URL', url);
+  document.getElementById('setup-banner').classList.remove('show');
+  toast('✅ Connected to Google Sheet!', 'ok');
+  initApp();
+}
+function checkSetup() {
+  if (!getScriptUrl()) {
+    document.getElementById('setup-banner').classList.add('show');
+    return false;
+  }
+  return true;
+}
+
+// ── DROP-IN REPLACEMENT FOR google.script.run ─────────────────
+// Same API: gsr().withSuccessHandler(fn).withFailureHandler(fn).methodName(args)
+// Now uses fetch() under the hood → works from any domain, any device
+function gsr() {
+  let _success = () => {};
+  let _failure = (e) => { toast('Error: ' + (e.message || String(e)), 'err'); };
+
+  const handler = {
+    withSuccessHandler(fn) { _success = fn; return handler; },
+    withFailureHandler(fn) { _failure = fn; return handler; }
+  };
+
+  return new Proxy(handler, {
+    get(target, prop) {
+      if (prop in target) return target[prop];
+      // Any other property = an API call
+      return (...args) => {
+        const url = getScriptUrl();
+        if (!url) { _failure(new Error('Script URL not set. Open setup banner.')); return; }
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' }, // simple request = no CORS preflight
+          body: JSON.stringify({ action: prop, args })
+        })
+        .then(r => {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(r => {
+          if (!r.ok) throw new Error(r.error || 'Server error');
+          _success(r.data);
+        })
+        .catch(e => _failure(e));
+      };
+    }
+  });
+}
+
+// ══ STATE ════════════════════════════════════════
+let allContacts=[],allEquipmentData=[],currentEventId=null,currentEventData=null;
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calEvents=[];
+let cachedAddresses=[];
+const METHODS=['Cash','Zelle','Venmo','Check','Bank Transfer','Square','Credit Card'];
+const ACCOUNTS=['Kirtan','Chintan','CKEvents Bank'];
+
+// ══ INIT ═════════════════════════════════════════
+window.onload=()=>{
+  const now=new Date();
+  document.getElementById('hdr-date').innerHTML=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'<br>'+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const today=now.toISOString().split('T')[0];
+  ['e-dt','p-date','eq-pdate','mi-date','eq-log-date','gl-date'].forEach(id=>setVal(id,today));
+  setVal('r-year',String(now.getFullYear()));setVal('mi-year',String(now.getFullYear()));
+  checkSetup();
+  initApp();
+};
+
+function initApp() {
+  if (!checkSetup()) return;
+  loadContacts();loadReport();loadPendingBalances();loadCustomChips();loadAddressHistory();
+}
+
+// ══ NAV ══════════════════════════════════════════
+function nav(id,el){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('scr-'+id).classList.add('on');el.classList.add('on');
+  if(!checkSetup())return;
+  if(id==='contacts')loadContacts();if(id==='reports')loadReport();if(id==='pay')loadPendingBalances();
+  if(id==='calendar'){loadCalendar(calYear,calMonth);loadUpcoming();}
+  if(id==='equipment'){loadEquipment();loadEquipStats();}
+  if(id==='mileage')loadMileage();
+  if(id==='ledger')loadGL();
+}
+
+// ══ ADDRESS HISTORY ═══════════════════════════════
+function loadAddressHistory(){gsr().withSuccessHandler(addrs=>{cachedAddresses=addrs||[];}).withFailureHandler(()=>{}).getAddressHistory();}
+function acAddress(inp,ddId){const q=(inp.value||'').trim().toLowerCase();const dd=document.getElementById(ddId);if(!dd)return;if(q.length<2){dd.style.display='none';return;}const matches=cachedAddresses.filter(a=>a.address.toLowerCase().includes(q)||a.venue.toLowerCase().includes(q)).slice(0,7);if(!matches.length){dd.style.display='none';return;}dd.innerHTML=matches.map(a=>`<div class="aci" onclick="pickAddress('${esc(a.address)}','${inp.id}','${ddId}')"><div class="an">📍 ${a.venue||a.address}</div>${a.venue?'<div class="ad">'+a.address+'</div>':''}</div>`).join('');dd.style.display='block';}
+function acAddressOrEvent(inp,ddId,eidId){const q=(inp.value||'').trim().toLowerCase();const dd=document.getElementById(ddId);if(!dd||q.length<2){if(dd)dd.style.display='none';return;}const addrMatches=cachedAddresses.filter(a=>a.address.toLowerCase().includes(q)||a.venue.toLowerCase().includes(q)).slice(0,4);gsr().withSuccessHandler(evMatches=>{const evHtml=(evMatches||[]).slice(0,4).map(e=>`<div class="aci" onclick="pickMileEvent('${e.id}','${esc(e.address||e.venue)}','${ddId}','${eidId}')"><div class="an">🗓️ ${e.customer} @ ${e.venue}</div><div class="ad">${e.date}${e.address?' · 📍 '+e.address:' · no address'}</div></div>`).join('');const addrHtml=addrMatches.map(a=>`<div class="aci" onclick="pickAddress('${esc(a.address)}','${inp.id}','${ddId}')"><div class="an">📍 ${a.venue||a.address}</div>${a.venue?'<div class="ad">'+a.address+'</div>':''}</div>`).join('');const combined=addrHtml+(addrHtml&&evHtml?'<div style="font-size:9px;color:var(--muted);padding:5px 12px;font-weight:700;text-transform:uppercase">Events</div>':'')+evHtml;if(!combined){dd.style.display='none';return;}dd.innerHTML=combined;dd.style.display='block';}).withFailureHandler(()=>{}).searchEvents(q);}
+function pickAddress(address,inpId,ddId){setVal(inpId,address);hideDD(ddId);if(inpId==='mi-dest')calcMilesForTrip();}
+function pickMileEvent(eid,address,ddId,eidId){setVal(eidId,eid);setVal('mi-event-link',eid);hideDD(ddId);if(address){setVal('mi-dest',address);calcMilesForTrip();}}
+
+// ══ CUSTOM CHIPS ═════════════════════════════════
+function loadCustomChips(){gsr().withSuccessHandler(items=>renderSavedChips('eq-saved-chips',items||[],'equipment')).withFailureHandler(()=>{}).getCustomEquipmentList();gsr().withSuccessHandler(items=>renderSavedChips('tm-saved-chips',items||[],'team')).withFailureHandler(()=>{}).getCustomTeamList();}
+function renderSavedChips(cid,items,type){const c=document.getElementById(cid);if(!c)return;c.innerHTML=items.map(item=>`<span class="chip chip-saved" onclick="tc(this)" data-val="${esc(item)}">${item}<span class="chip-del" onclick="event.stopPropagation();removeSavedChip('${esc(item)}','${type}')">✕</span></span>`).join('');}
+function saveEquipItem(){const inp=document.getElementById('eq-custom-inp');const val=inp.value.trim();if(!val){toast('Enter name','err');return;}gsr().withSuccessHandler(r=>{toast(r&&r.added?'✅ Saved!':'Already exists');inp.value='';document.getElementById('eq-custom-row').classList.remove('show');renderSavedChips('eq-saved-chips',r.items,'equipment');}).withFailureHandler(()=>toast('Error','err')).addCustomEquipmentItem(val);}
+function saveTeamMember(){const inp=document.getElementById('tm-custom-inp');const val=inp.value.trim();if(!val){toast('Enter name','err');return;}gsr().withSuccessHandler(r=>{toast(r&&r.added?'✅ Saved!':'Already exists');inp.value='';document.getElementById('tm-custom-row').classList.remove('show');renderSavedChips('tm-saved-chips',r.items,'team');}).withFailureHandler(()=>toast('Error','err')).addCustomTeamMember(val);}
+function removeSavedChip(item,type){const fn=type==='equipment'?'removeCustomEquipmentItem':'removeCustomTeamMember';const cid=type==='equipment'?'eq-saved-chips':'tm-saved-chips';gsr().withSuccessHandler(r=>{toast('"'+item+'" removed');renderSavedChips(cid,r.items,type);}).withFailureHandler(()=>{})[fn](item);}
+function toggleRow(id){const r=document.getElementById(id);r.classList.toggle('show');if(r.classList.contains('show'))r.querySelector('input').focus();}
+function addTmpChip(chipsId,inputId,rowId){const inp=document.getElementById(inputId);const val=inp.value.trim();if(!val)return;const container=document.getElementById(chipsId);const addBtn=container.querySelector('.chip-add');const chip=document.createElement('span');chip.className='chip chip-custom on';chip.innerHTML=val+'<span class="chip-del" onclick="this.parentElement.remove()">✕</span>';chip.onclick=function(e){if(!e.target.classList.contains('chip-del'))this.classList.toggle('on');};container.insertBefore(chip,addBtn);inp.value='';document.getElementById(rowId).classList.remove('show');}
+function tc(el){el.classList.toggle('on');}
+function getChips(id){const res=[];document.querySelectorAll('#'+id+' .chip.on:not(.chip-add)').forEach(c=>{res.push(c.dataset.val||c.textContent.replace('✕','').trim());});const sid=id==='eq-chips'?'eq-saved-chips':'tm-saved-chips';document.querySelectorAll('#'+sid+' .chip.on').forEach(c=>{const v=c.dataset.val||c.textContent.replace('✕','').trim();if(v&&!res.includes(v))res.push(v);});return res.join(', ');}
+
+// ══ AUTOCOMPLETE ══════════════════════════════════
+function acContact(inp,idF,phF,emF){const q=inp.value.trim();const ddId=inp.id+'-dd';const dd=document.getElementById(ddId);if(!dd||q.length<1){if(dd)dd.style.display='none';return;}gsr().withSuccessHandler(matches=>{if(!matches||!matches.length){dd.style.display='none';return;}dd.innerHTML=matches.map(c=>{const tc2=(c.type||'client').toLowerCase();const info=[c.phone,c.email].filter(Boolean).join(' · ');return`<div class="aci" onclick="pickContact('${c.id}','${esc(c.name)}','${esc(c.phone||'')}','${esc(c.email||'')}','${inp.id}','${idF}','${phF}','${emF}')"><div class="an">${c.name}<span class="ab ab-${tc2}">${c.type}</span></div><div class="ad">${info||'No info'}${c.notes?' · <span style=color:#fbbf24>'+c.notes+'</span>':''}</div></div>`;}).join('');dd.style.display='block';}).withFailureHandler(()=>{dd.style.display='none';}).searchContacts(q);}
+function pickContact(id,name,phone,email,inpId,idF,phF,emF){setVal(inpId,name);if(idF&&idF!=='null')setVal(idF,id);if(phF&&phF!=='null'&&phone)setVal(phF,phone);if(emF&&emF!=='null'&&email)setVal(emF,email);hideDD(inpId+'-dd');if(inpId==='p-person')updateDescPreview();}
+function acEvent(inp,ddOverride,eidOverride){const ddId=ddOverride||'p-search-dd';const eidId=eidOverride||'p-eid';const q=inp.value.trim();const dd=document.getElementById(ddId);if(q.length<2){dd.style.display='none';return;}gsr().withSuccessHandler(res=>{if(!res||!res.length){dd.style.display='none';return;}dd.innerHTML=res.map(e=>{const sc=e.status==='Completed'?'badge-completed':e.status==='Cancelled'?'badge-cancelled':'badge-booked';return`<div class="aci" onclick="pickEventGeneric('${e.id}','${esc(e.address||'')}','${inp.id}','${ddId}','${eidId}')"><div class="an">${e.id} — ${e.customer} <span class="badge ${sc}">${e.status}</span></div><div class="ad">${e.date} · ${e.venue}${e.address?' · <span style=color:var(--cyan)>📍</span>':''}</div></div>`;}).join('');dd.style.display='block';}).withFailureHandler(()=>{dd.style.display='none';}).searchEvents(q);}
+function pickEventGeneric(eid,address,inpId,ddId,eidId){setVal(eidId,eid);hideDD(ddId);if(eidId==='p-eid'){document.getElementById(inpId).value=eid;pickEvent(eid);}else{document.getElementById(inpId).value=eid;if(inpId==='mi-dest'&&address)setVal('mi-dest',address);}}
+function acEventEdit(inp){const q=inp.value.trim();const dd=document.getElementById('ed-search-dd');if(q.length<2){dd.style.display='none';return;}gsr().withSuccessHandler(res=>{if(!res||!res.length){dd.style.display='none';return;}dd.innerHTML=res.map(e=>{const sc=e.status==='Completed'?'badge-completed':e.status==='Cancelled'?'badge-cancelled':'badge-booked';return`<div class="aci" onclick="pickEventForEdit('${e.id}','${esc(e.customer)}')"><div class="an">${e.id} — ${e.customer} <span class="badge ${sc}">${e.status}</span></div><div class="ad">${e.date} · ${e.venue}</div></div>`;}).join('');dd.style.display='block';}).withFailureHandler(()=>{dd.style.display='none';}).searchEvents(q);}
+function acEquipment(inp){const q=inp.value.trim();const dd=document.getElementById('eq-log-dd');if(q.length<1){dd.style.display='none';return;}const matches=allEquipmentData.filter(e=>e.name.toLowerCase().includes(q.toLowerCase())||e.category.toLowerCase().includes(q.toLowerCase())).slice(0,8);if(!matches.length){dd.style.display='none';return;}dd.innerHTML=matches.map(e=>`<div class="aci" onclick="pickEquipment('${e.id}','${esc(e.name)}')"><div class="an">${e.name}</div><div class="ad">${e.category} · ${e.condition}</div></div>`).join('');dd.style.display='block';}
+function pickEquipment(id,name){setVal('eq-log-id',id);setVal('eq-log-search',name);hideDD('eq-log-dd');}
+function pickEvent(eid){currentEventId=eid;setVal('p-eid',eid);hideDD('p-search-dd');toast('Loading…');gsr().withSuccessHandler(ev=>{if(!ev){toast('Not found','err');return;}currentEventData=ev;document.getElementById('p-search').value=ev.id+' — '+ev.customer;const sc=ev.status==='Completed'?'badge-completed':'badge-booked';inner('p-sid',ev.id);inner('p-sname',ev.customer+' @ '+ev.venue);inner('p-smeta',ev.date+' · '+(ev.eventType||'—')+' · <span class="badge '+sc+'">'+ev.status+'</span>'+(ev.depositTotal>0?' · <span style="color:var(--gold)">💰 Dep: $'+fmt(ev.depositTotal)+'</span>':''));inner('p-quote','$'+fmt(ev.quote));inner('p-received','$'+fmt(ev.totalIncome));inner('p-balance','$'+fmt(ev.balance));inner('p-profit','$'+fmt(ev.netProfit));document.getElementById('p-summary').style.display='block';renderIncomeBreakdown(ev);renderSubBreakdown(ev);loadEventTxs(eid);toast('Loaded ✓','ok');}).withFailureHandler(e=>toast('Error: '+e.message,'err')).getEventSummary(eid);}
+function renderIncomeBreakdown(ev){const card=document.getElementById('p-breakdown-card');if(!ev.totalIncome){card.style.display='none';return;}card.style.display='block';const acctRows=Object.entries(ev.incomeByAccount||{}).filter(([k,v])=>v>0).map(([k,v])=>`<div class="bd-row"><span class="bd-row-key">${k}</span><span class="bd-row-val">$${fmt(v)}</span></div>`).join('');const methRows=Object.entries(ev.incomeByMethod||{}).filter(([k,v])=>v>0).map(([k,v])=>`<div class="bd-row"><span class="bd-row-key">${k}</span><span class="bd-row-val">$${fmt(v)}</span></div>`).join('');inner('bd-by-account',acctRows||'<div class="bd-row"><span class="bd-row-key" style="color:var(--muted)">None yet</span></div>');inner('bd-by-method',methRows||'<div class="bd-row"><span class="bd-row-key" style="color:var(--muted)">None yet</span></div>');}
+function renderSubBreakdown(ev){const card=document.getElementById('p-sub-card');const bd=ev.subcontractorBreakdown||{};const people=Object.keys(bd);if(!people.length){card.style.display='none';return;}card.style.display='block';inner('p-sub-breakdown',people.map(p=>{const info=bd[p];return`<div class="sub-person"><div class="sub-person-top"><div class="sub-person-name">👤 ${p}</div><div class="sub-person-total">-$${fmt(info.total)}</div></div>${info.payments.map(pay=>`<div class="sub-pay-row"><span>${pay.date} · ${pay.subtype}</span><span>$${fmt(pay.amount)} · ${pay.method}</span></div>`).join('')}</div>`;}).join('')+'<div style="font-size:11px;font-weight:700;color:#fb7185;text-align:right;padding-top:7px;border-top:1px solid var(--border)">Total Paid: $'+fmt(ev.subcontractorTotal)+'</div>');}
+
+// ══ MILEAGE ══════════════════════════════════════
+function calcMilePreview(){const address=getVal('e-va');if(!address){toast('Enter address first','err');return;}const preview=document.getElementById('mile-preview-inline');preview.style.display='block';preview.textContent='📍 Calculating…';gsr().withSuccessHandler(miles=>{if(miles){preview.innerHTML='🚗 <strong>'+miles+' mi one way → '+Math.round(miles*2)+' mi round trip</strong> <span class="auto-badge">AUTO</span>';}else{preview.textContent='Could not calculate — check address';}}).withFailureHandler(()=>{preview.textContent='Could not calculate';}).getMilesFromAddress(address);}
+function calcMilesForTrip(){const dest=getVal('mi-dest');if(!dest){toast('Enter destination first','err');return;}toast('Calculating miles…');gsr().withSuccessHandler(miles=>{if(miles){setVal('mi-miles',miles);updateMilePreview();toast('✅ '+miles+' miles from base!','ok');}else toast('Could not calculate — try full address','err');}).withFailureHandler(()=>toast('Error calculating','err')).getMilesFromAddress(dest);}
+function updateMilePreview(){const miles=parseFloat(getVal('mi-miles'))||0;const isRound=getVal('mi-rt')==='yes';setVal('mi-preview',(isRound?miles*2:miles).toFixed(1)+' miles');}
+
+// ══ PENDING BALANCES ═════════════════════════════
+function loadPendingBalances(){inner('pending-list','<div class="spin"></div>');gsr().withSuccessHandler(items=>{if(!items||!items.length){inner('pending-list','<div class="empty" style="padding:10px"><i>✅</i>All paid up!</div>');inner('pending-count','');return;}inner('pending-count',items.length+' event'+(items.length>1?'s':''));inner('pending-list',items.map(e=>`<div class="dep-card" onclick="pickEvent('${e.id}');document.querySelectorAll('.tab')[1].click()"><div class="dep-top"><div><div class="dep-name">${e.customer}</div><div class="dep-meta">${e.date} · ${e.venue} · <span class="badge badge-${(e.status||'booked').toLowerCase()}">${e.status}</span></div><div class="dep-meta" style="margin-top:2px">${e.depositTotal>0?'💰 Deposit: $'+fmt(e.depositTotal):'<span style=color:var(--red)>⚠️ No deposit</span>'}</div></div><div style="text-align:right"><div class="dep-bal">$${fmt(e.balance)}</div><div style="font-size:9px;color:var(--muted)">of $${fmt(e.quote)}</div></div></div></div>`).join(''));}).withFailureHandler(()=>inner('pending-list','<div class="err-msg">⚠️ Could not load</div>')).getPendingBalances();}
+
+// ══ TX ════════════════════════════════════════════
+function onTxType(){const val=document.getElementById('p-type').value;if(!val)return;const[dir,sub]=val.split('|');const needP=['dj_payment','mc_payment','labor','vendor_rental'].includes(sub);document.getElementById('p-person-wrap').style.display=needP?'block':'none';if(!needP){setVal('p-person','');setVal('p-pid','');}document.getElementById('p-person-lbl').textContent=dir==='income'?'Received From':'Paid To';document.getElementById('p-account-lbl').textContent=dir==='income'?'Collected By':'Paid By';updateDescPreview();}
+function updateDescPreview(){const val=document.getElementById('p-type').value,eid=document.getElementById('p-eid').value;if(!val||!eid)return;const[dir,sub]=val.split('|');const labels={deposit:'Deposit',partial:'Partial Payment',final:'Final Payment',tip:'Tip',equipment_rental:'Equip Rental',other_income:'Other Income',dj_payment:'DJ Payment',mc_payment:'MC Payment',labor:'Team Payment',vendor_rental:'Vendor Rental',dry_ice:'Dry Ice',gas_travel:'Gas/Travel',food:'Food',permit:'Permit',bank_fee:'Bank Fee',maintenance:'Maintenance',equip_purchase:'Equip Purchase',other_expense:'Other'};const pp=document.getElementById('p-person').value?(dir==='income'?' from ':' to ')+document.getElementById('p-person').value:'';document.getElementById('p-desc-text').textContent=(labels[sub]||sub)+pp+' — '+document.getElementById('p-search').value.replace(eid+' — ','');document.getElementById('p-desc-preview').style.display='block';}
+function submitTx(){const tyVal=getVal('p-type');if(!tyVal){toast('Select type','err');return;}const[dir,sub]=tyVal.split('|');const eid=getVal('p-eid');if(!eid){toast('No event','err');return;}const amount=getVal('p-amount');if(!amount||parseFloat(amount)<=0){toast('Enter amount','err');return;}const method=getVal('p-method');if(!method){toast('Select method','err');return;}gsr().withSuccessHandler(r=>{toast('✅ Saved!','ok');pickEvent(eid);resetTxForm();loadPendingBalances();}).withFailureHandler(e=>toast('Error: '+e.message,'err')).recordTransaction({eventId:eid,direction:dir,subtype:sub,person:getVal('p-person'),personId:getVal('p-pid'),amount,date:getVal('p-date'),method,account:getVal('p-account'),notes:getVal('p-notes')});}
+function loadEventTxs(eid){inner('p-tx-list','<li><div class="spin"></div></li>');gsr().withSuccessHandler(txs=>{if(!txs||!txs.length){inner('p-tx-list','<li class="empty"><i>📭</i>No transactions yet</li>');inner('p-tx-summary','');return;}const inc=txs.filter(t=>t.direction==='income').reduce((s,t)=>s+t.amount,0);const exp=txs.filter(t=>t.direction==='expense').reduce((s,t)=>s+t.amount,0);inner('p-tx-summary','<span style=color:#34d399>+$'+fmt(inc)+'</span> / <span style=color:#fb7185>-$'+fmt(exp)+'</span>');const incTxs=txs.filter(t=>t.direction==='income'),expTxs=txs.filter(t=>t.direction==='expense');let html='';if(incTxs.length){html+='<li class="tx-divider">💚 Income ('+incTxs.length+')</li>';incTxs.forEach(tx=>{html+=`<li class="tx-item"><div style="flex:1;min-width:0"><div class="tx-label income">${tx.subtype}${tx.person?' — '+tx.person:''}</div><div class="tx-meta">${tx.date} · ${tx.method} · ${tx.account}</div>${tx.notes?'<div class="tx-meta" style="color:var(--soft)">'+tx.notes+'</div>':''}</div><div class="tx-amt income">+$${fmt(tx.amount)}</div></li>`;});}if(expTxs.length){html+='<li class="tx-divider">🔴 Expenses ('+expTxs.length+')</li>';expTxs forEach(tx=>{html+=`<li class="tx-item"><div style="flex:1;min-width:0"><div class="tx-label expense">${tx.subtype}${tx.person?' — '+tx.person:''}</div><div class="tx-meta">${tx.date} · ${tx.method} · ${tx.account}</div>${tx.notes?'<div class="tx-meta" style="color:var(--soft)">'+tx.notes+'</div>':''}</div><div class="tx-amt expense">-$${fmt(tx.amount)}</div></li>`;});}inner('p-tx-list',html);}).withFailureHandler(()=>inner('p-tx-list','<li class="err-msg">⚠️ Could not load</li>')).getEventTransactions(eid);}
+
+// ══ EVENTS ═══════════════════════════════════════
+function submitEvent(){const data={clientName:getVal('e-cl'),contactId:getVal('e-cid'),clientPhone:getVal('e-ph'),clientEmail:getVal('e-em'),eventType:getVal('e-ty'),eventDate:getVal('e-dt'),startTime:getVal('e-st'),endTime:getVal('e-et'),quote:getVal('e-qt'),venue:getVal('e-vn'),address:getVal('e-va'),equipment:getChips('eq-chips'),team:getChips('tm-chips'),notes:getVal('e-nt'),contactType:getVal('e-ctype')};if(!data.clientName){toast('Client name required','err');return;}if(!data.eventDate){toast('Date required','err');return;}if(!data.venue){toast('Venue required','err');return;}if(!data.quote||parseFloat(data.quote)<=0){toast('Enter quote amount','err');return;}const btn=document.getElementById('e-submit-btn');btn.disabled=true;btn.textContent='⏳ Booking…';toast('Creating event…');gsr().withSuccessHandler(r=>{toast('✅ '+r.eventId+' booked!','ok');btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';resetEventForm();loadPendingBalances();}).withFailureHandler(e=>{toast('Error: '+e.message,'err');btn.disabled=false;btn.textContent='📅 Book Event + Create Calendar';}).createEvent(data);}
+function pickEventForEdit(eid,customer){setVal('ed-search',eid+' — '+customer);setVal('ed-eid',eid);hideDD('ed-search-dd');gsr().withSuccessHandler(ev=>{if(!ev){toast('Not found','err');return;}populateEditForm(ev);document.getElementById('edit-form').style.display='block';}).withFailureHandler(e=>toast('Error','err')).getEventFull(eid);}
+function populateEditForm(ev){document.getElementById('ed-ty').value=ev.eventType||'';document.getElementById('ed-status').value=ev.status||'Booked';setVal('ed-dt',ev.eventDate||'');setVal('ed-st',ev.startTime||'');setVal('ed-et',ev.endTime||'');setVal('ed-vn',ev.venue||'');setVal('ed-va',ev.address||'');setVal('ed-qt',ev.quote||'');setVal('ed-eq',ev.equipment||'');setVal('ed-tm',ev.team||'');setVal('ed-nt',ev.notes||'');}
+function submitEditEvent(){const eid=getVal('ed-eid');if(!eid){toast('No event','err');return;}const btn=document.getElementById('ed-submit-btn');btn.disabled=true;btn.textContent='⏳ Saving…';gsr().withSuccessHandler(r=>{toast('✅ Updated!','ok');btn.disabled=false;btn.textContent='💾 Save + Update Calendar';resetEditForm();}).withFailureHandler(e=>{toast('Error: '+e.message,'err');btn.disabled=false;btn.textContent='💾 Save + Update Calendar';}).updateEvent(eid,{eventType:getVal('ed-ty'),eventDate:getVal('ed-dt'),startTime:getVal('ed-st'),endTime:getVal('ed-et'),venue:getVal('ed-vn'),address:getVal('ed-va'),quote:getVal('ed-qt'),equipment:getVal('ed-eq'),team:getVal('ed-tm'),notes:getVal('ed-nt'),status:getVal('ed-status')});}
+function resetEditForm(){setVal('ed-search','');setVal('ed-eid','');['ed-vn','ed-va','ed-qt','ed-eq','ed-tm','ed-nt'].forEach(id=>setVal(id,''));document.getElementById('edit-form').style.display='none';}
+function openPayEditEvent(){if(!currentEventData){toast('No event loaded','err');return;}document.querySelectorAll('.tab')[0].click();setTimeout(()=>{setVal('ed-search',currentEventData.id+' — '+currentEventData.customer);setVal('ed-eid',currentEventData.id);populateEditForm(currentEventData);document.getElementById('edit-form').style.display='block';document.getElementById('edit-form').scrollIntoView({behavior:'smooth'});},300);}
+function markComplete(){if(!currentEventId){toast('No event','err');return;}gsr().withSuccessHandler(()=>{toast('✅ Marked Completed','ok');pickEvent(currentEventId);}).withFailureHandler(e=>toast('Error','err')).updateEvent(currentEventId,{status:'Completed'});}
+
+// ══ WRAP-UP ═══════════════════════════════════════
+let wuIncRows=[],wuExpRows=[],wuFeeRows=[];
+function openWrapup(){if(!currentEventId||!currentEventData){toast('No event loaded','err');return;}inner('wrapup-modal-sub',currentEventData.customer+' @ '+currentEventData.venue+' — '+currentEventData.date);wuIncRows=[];wuExpRows=[];wuFeeRows=[];inner('wu-income-rows','');inner('wu-expense-rows','');inner('wu-fee-rows','');document.getElementById('wu-preview').style.display='none';addIncomeRow();addExpenseRow();document.getElementById('wrapup-modal-bg').classList.add('show');}
+function addIncomeRow(){const id='inc'+Date.now();const today=new Date().toISOString().split('T')[0];document.getElementById('wu-income-rows').insertAdjacentHTML('beforeend',`<div class="tx-entry" id="${id}"><button class="remove-btn" onclick="removeRow('${id}')">✕</button><div class="row2"><div class="fg"><label>Type</label><select id="${id}-sub" onchange="calcWuPreview()"><option value="final">Final Payment</option><option value="partial">Partial</option><option value="deposit">Deposit</option><option value="tip">Tip</option><option value="equipment_rental">Equip Rental</option><option value="other_income">Other</option></select></div><div class="fg"><label>Amount ($)</label><input type="number" id="${id}-amt" placeholder="0.00" oninput="calcWuPreview()"></div></div><div class="row3"><div class="fg"><label>Method</label><select id="${id}-meth">${METHODS.map(m=>'<option>'+m+'</option>').join('')}</select></div><div class="fg"><label>Received By</label><select id="${id}-acct">${ACCOUNTS.map(a=>'<option>'+a+'</option>').join('')}</select></div><div class="fg"><label>Date</label><input type="date" id="${id}-date" value="${today}"></div></div><div class="fg"><label>Notes</label><input id="${id}-notes" placeholder="Optional…"></div></div>`);wuIncRows.push(id);}
+function addExpenseRow(){const id='exp'+Date.now();const today=new Date().toISOString().split('T')[0];document.getElementById('wu-expense-rows').insertAdjacentHTML('beforeend',`<div class="tx-entry" id="${id}"><button class="remove-btn" onclick="removeRow('${id}')">✕</button><div class="row2"><div class="fg"><label>Type</label><select id="${id}-sub"><option value="dj_payment">DJ Payment</option><option value="mc_payment">MC Payment</option><option value="labor">Team / Labor</option><option value="vendor_rental">Vendor Rental</option><option value="dry_ice">Dry Ice</option><option value="other_expense">Other</option></select></div><div class="fg"><label>Paid To</label><div class="ac"><input id="${id}-person" placeholder="Search contacts…" oninput="acContact(this,'${id}-pid',null,null)" autocomplete="off"><div class="acd" id="${id}-person-dd"></div></div><input type="hidden" id="${id}-pid"></div></div><div class="row3"><div class="fg"><label>Amount ($)</label><input type="number" id="${id}-amt" placeholder="0.00" oninput="calcWuPreview()"></div><div class="fg"><label>Method</label><select id="${id}-meth">${METHODS.map(m=>'<option>'+m+'</option>').join('')}</select></div><div class="fg"><label>Paid By</label><select id="${id}-acct">${ACCOUNTS.map(a=>'<option>'+a+'</option>').join('')}</select></div></div><div class="fg"><label>Date</label><input type="date" id="${id}-date" value="${today}"></div></div>`);wuExpRows.push(id);}
+function addFeeRow(){const id='fee'+Date.now();const today=new Date().toISOString().split('T')[0];document.getElementById('wu-fee-rows').insertAdjacentHTML('beforeend',`<div class="tx-entry" id="${id}"><button class="remove-btn" onclick="removeRow('${id}')">✕</button><div class="row2"><div class="fg"><label>Fee Type</label><select id="${id}-sub"><option value="bank_fee">Bank / Processing Fee</option><option value="gas_travel">Gas / Travel</option><option value="food">Food</option><option value="permit">Permit</option><option value="maintenance">Maintenance</option><option value="equip_purchase">Equip Purchase</option><option value="other_expense">Other</option></select></div><div class="fg"><label>Amount ($)</label><input type="number" id="${id}-amt" placeholder="0.00" oninput="calcWuPreview()"></div></div><div class="row3"><div class="fg"><label>Method</label><select id="${id}-meth">${METHODS.map(m=>'<option>'+m+'</option>').join('')}</select></div><div class="fg"><label>Paid By</label><select id="${id}-acct">${ACCOUNTS.map(a=>'<option>'+a+'</option>').join('')}</select></div><div class="fg"><label>Date</label><input type="date" id="${id}-date" value="${today}"></div></div><div class="fg"><label>Notes</label><input id="${id}-notes" placeholder="e.g. Square 2.6% fee…"></div></div>`);wuFeeRows.push(id);}
+function removeRow(id){const el=document.getElementById(id);if(el)el.remove();wuIncRows=wuIncRows.filter(r=>r!==id);wuExpRows=wuExpRows.filter(r=>r!==id);wuFeeRows=wuFeeRows.filter(r=>r!==id);calcWuPreview();}
+function calcWuPreview(){const getAmt=id=>{const el=document.getElementById(id+'-amt');return el?parseFloat(el.value)||0:0;};const incTotal=[...wuIncRows].reduce((s,id)=>s+getAmt(id),0);const expTotal=[...wuExpRows,...wuFeeRows].reduce((s,id)=>s+getAmt(id),0);const net=incTotal-expTotal;inner('wu-prev-inc','$'+fmt(incTotal));inner('wu-prev-exp','$'+fmt(expTotal));inner('wu-prev-net','<span style="color:'+(net>=0?'#34d399':'#fb7185')+'">$'+fmt(net)+'</span>');document.getElementById('wu-preview').style.display=(incTotal||expTotal)?'block':'none';}
+function submitWrapup(){if(!currentEventId){toast('No event','err');return;}const txs=[];for(const id of wuIncRows){const el=document.getElementById(id);if(!el||!el.isConnected)continue;const amt=parseFloat(document.getElementById(id+'-amt')?.value)||0;if(amt<=0)continue;txs.push({direction:'income',subtype:document.getElementById(id+'-sub')?.value||'final',amount:amt,method:document.getElementById(id+'-meth')?.value||'Cash',account:document.getElementById(id+'-acct')?.value||'Kirtan',date:document.getElementById(id+'-date')?.value||new Date().toISOString().split('T')[0],notes:document.getElementById(id+'-notes')?.value||''});}for(const id of [...wuExpRows,...wuFeeRows]){const el=document.getElementById(id);if(!el||!el.isConnected)continue;const amt=parseFloat(document.getElementById(id+'-amt')?.value)||0;if(amt<=0)continue;txs.push({direction:'expense',subtype:document.getElementById(id+'-sub')?.value||'other_expense',person:document.getElementById(id+'-person')?.value||'',personId:document.getElementById(id+'-pid')?.value||'',amount:amt,method:document.getElementById(id+'-meth')?.value||'Cash',account:document.getElementById(id+'-acct')?.value||'Kirtan',date:document.getElementById(id+'-date')?.value||new Date().toISOString().split('T')[0],notes:document.getElementById(id+'-notes')?.value||''});}if(!txs.length){toast('Add at least one transaction','err');return;}toast('Saving…');gsr().withSuccessHandler(results=>{const ok=results.filter(r=>r.ok).length;toast('✅ '+ok+' saved!','ok');closeModal('wrapup-modal-bg');pickEvent(currentEventId);loadPendingBalances();}).withFailureHandler(e=>toast('Error: '+e.message,'err')).recordBulkTransactions(currentEventId,txs);}
+
+// ══ CAL NOTES ════════════════════════════════════
+function openCalNoteModal(){if(!currentEventId||!currentEventData){toast('No event loaded','err');return;}inner('calnote-modal-sub',currentEventData.customer+' @ '+currentEventData.venue);setVal('cn-text','');document.getElementById('calnote-modal-bg').classList.add('show');}
+function submitCalNoteFromModal(){const eid=currentEventId;const text=getVal('cn-text');if(!eid){toast('No event','err');return;}if(!text){toast('Enter note','err');return;}gsr().withSuccessHandler(r=>{if(r&&r.ok){toast('✅ Added to Calendar!','ok');closeModal('calnote-modal-bg');}else toast('Error: '+(r&&r.msg||'unknown'),'err');}).withFailureHandler(e=>toast('Error','err')).addCalendarNote(eid,text,getVal('cn-cat'));}
+function submitCalNote(){const eid=getVal('cal-note-eid');const text=getVal('cal-note-text');if(!eid){toast('Select event first','err');return;}if(!text){toast('Enter note','err');return;}gsr().withSuccessHandler(r=>{if(r&&r.ok){toast('✅ Added to Calendar!','ok');setVal('cal-note-text','');setVal('cal-note-eid','');setVal('cal-note-search','');}else toast('Error: '+(r&&r.msg||'unknown'),'err');}).withFailureHandler(e=>toast('Error','err')).addCalendarNote(eid,text,getVal('cal-note-cat'));}
+
+// ══ CONTACTS ════════════════════════════════════
+function loadContacts(){inner('ct-list','<div class="spin"></div>');gsr().withSuccessHandler(cts=>{allContacts=cts||[];renderContacts(allContacts);inner('ct-count','('+allContacts.length+')');}).withFailureHandler(()=>inner('ct-list','<div class="err-msg">⚠️ Could not load</div>')).getContacts();}
+function renderContacts(list){const el=document.getElementById('ct-list');if(!list||!list.length){el.innerHTML='<div class="empty"><i>👥</i>No contacts yet</div>';return;}el.innerHTML=list.map(c=>{const tc2=(c.type||'client').toLowerCase();return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openCtEdit('${c.id}','${esc(c.name)}','${c.type}','${esc(c.phone||'')}','${esc(c.email||'')}','${esc(c.notes||'')}')"><div style="width:36px;height:36px;border-radius:50%;background:rgba(109,66,245,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:#a78bfa;flex-shrink:0">${c.name.charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${c.name} <span class="ab ab-${tc2}">${c.type}</span></div><div style="font-size:10px;color:var(--muted)">${[c.phone,c.email].filter(Boolean).join(' · ')||'No info'}</div>${c.notes?'<div style="font-size:10px;color:var(--gold)">'+c.notes+'</div>':''}${c.count>0?'<div style="font-size:9px;color:var(--accent)">🎪 '+c.count+' event'+(c.count>1?'s':'')+'</div>':''}</div></div>`;}).join('');}
+function filterContacts(q){renderContacts(q?allContacts.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q.toLowerCase())):allContacts);}
+function saveContact(){const name=getVal('c-name');if(!name){toast('Name required','err');return;}gsr().withSuccessHandler(r=>{toast(r.existing?name+' already exists':'✅ Saved!',r.existing?'':'ok');if(!r.existing){['c-name','c-phone','c-email','c-notes'].forEach(id=>setVal(id,''));loadContacts();}}).withFailureHandler(e=>toast('Error','err')).addContact({name,type:getVal('c-type'),phone:getVal('c-phone'),email:getVal('c-email'),notes:getVal('c-notes')});}
+function openCtEdit(id,name,type,phone,email,notes){setVal('ct-edit-id',id);setVal('ct-edit-name',name);document.getElementById('ct-edit-type').value=type;setVal('ct-edit-phone',phone);setVal('ct-edit-email',email);setVal('ct-edit-notes',notes);document.getElementById('ct-modal-bg').classList.add('show');}
+function saveCtEdit(){gsr().withSuccessHandler(()=>{toast('✅ Updated','ok');closeModal('ct-modal-bg');loadContacts();}).withFailureHandler(e=>toast('Error','err')).updateContact({id:getVal('ct-edit-id'),name:getVal('ct-edit-name'),type:document.getElementById('ct-edit-type').value,phone:getVal('ct-edit-phone'),email:getVal('ct-edit-email'),notes:getVal('ct-edit-notes')});}
+
+// ══ CALENDAR ════════════════════════════════════
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}loadCalendar(calYear,calMonth);}
+function loadCalendar(year,month){document.getElementById('cal-month-label').textContent=MONTH_NAMES[month]+' '+year;inner('cal-grid','<div style="grid-column:1/-1;padding:20px;text-align:center"><div class="spin"></div></div>');inner('cal-legend','');document.getElementById('day-detail').classList.remove('show');gsr().withSuccessHandler(events=>{calEvents=events||[];renderCalGrid(year,month,calEvents);renderCalLegend(calEvents);}).withFailureHandler(()=>inner('cal-grid','<div style="grid-column:1/-1" class="err-msg">⚠️ Calendar failed</div>')).getCalendarEvents(year,month);}
+function renderCalGrid(year,month,events){const today=new Date(),firstDay=new Date(year,month,1).getDay(),daysInMonth=new Date(year,month+1,0).getDate(),prevDays=new Date(year,month,0).getDate();const dayMap={};events.forEach(ev=>{const d=new Date(ev.start);const key=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();if(!dayMap[key])dayMap[key]=[];dayMap[key].push(ev);});let html='';for(let i=firstDay-1;i>=0;i--)html+=`<div class="cal-day other-month"><div class="cal-day-num">${prevDays-i}</div></div>`;for(let d=1;d<=daysInMonth;d++){const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;const isWknd=new Date(year,month,d).getDay()===0||new Date(year,month,d).getDay()===6;const key=year+'-'+(month+1)+'-'+d;const dayEvs=dayMap[key]||[];const pills=dayEvs.slice(0,2).map(ev=>`<div class="cal-pill" style="background:${ev.color}">${ev.title.split(' @ ')[0].substring(0,11)}</div>`).join('');const more=dayEvs.length>2?`<div class="cal-more">+${dayEvs.length-2}</div>`:'';html+=`<div class="cal-day${isToday?' today':''}${isWknd?' wknd':''}${dayEvs.length?' has-event':''}" onclick="showDayDetail(${year},${month},${d})"><div class="cal-day-num">${d}</div>${pills}${more}</div>`;}const totalCells=Math.ceil((firstDay+daysInMonth)/7)*7,nextFill=totalCells-(firstDay+daysInMonth);for(let i=1;i<=nextFill;i++)html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;inner('cal-grid',html);}
+function renderCalLegend(events){const colorSet={};events.forEach(ev=>{const t=ev.title.split(' — ')[1]||ev.title.split(' @ ')[0];if(!colorSet[ev.color])colorSet[ev.color]=t;});inner('cal-legend',Object.entries(colorSet).slice(0,6).map(([c,l])=>`<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${c}"></div><span>${l}</span></div>`).join('')||'<span style="font-size:10px;color:#aaa">No events this month</span>');}
+function showDayDetail(year,month,day){const dayEvs=calEvents.filter(ev=>{const d=new Date(ev.start);return d.getFullYear()===year&&d.getMonth()===month&&d.getDate()===day;});const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const detail=document.getElementById('day-detail');inner('day-detail-title','📌 '+months[month]+' '+day+', '+year);if(!dayEvs.length){inner('day-detail-events','<div class="empty" style="padding:8px"><i>🎵</i>Free day!</div>');detail.classList.add('show');return;}inner('day-detail-events',dayEvs.map(ev=>{const s=new Date(ev.start),e2=new Date(ev.end);const tf=d=>d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return`<div class="day-ev" style="border-left-color:${ev.color}"><div class="day-ev-title">${ev.title}</div><div class="day-ev-time">🕐 ${ev.allDay?'All Day':tf(s)+' – '+tf(e2)}</div>${ev.location?'<div class="day-ev-loc">📍 '+ev.location+'</div>':''}</div>`;}).join(''));detail.classList.add('show');detail.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function loadUpcoming(){inner('upcoming-list','<li><div class="spin"></div></li>');gsr().withSuccessHandler(events=>{if(!events||!events.length){inner('upcoming-list','<li class="empty"><i>📅</i>No upcoming events</li>');return;}inner('upcoming-list',events.map(ev=>{const d=new Date(ev.start);return`<li class="upcoming-item"><span class="upcoming-dot" style="color:${ev.color};background:${ev.color}20"></span><div style="flex:1;min-width:0"><div class="upcoming-title">${ev.title}</div><div class="upcoming-meta">📅 ${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${ev.allDay?'All Day':d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div></li>`;}).join(''));}).withFailureHandler(()=>inner('upcoming-list','<li class="err-msg">⚠️ Could not load</li>')).getUpcomingCalendarEvents();}
+
+// ══ REPORTS ═════════════════════════════════════
+function loadReport(){const year=document.getElementById('r-year').value;const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];['r-stats','r-outstanding','r-accounts','r-monthly','r-event-pl','r-cats','r-mileage','r-contractors'].forEach(id=>inner(id,'<div class="spin"></div>'));inner('r-stats','<div class="stat-box"><div class="spin"></div></div>');gsr().withSuccessHandler(d=>{if(!d)return;inner('r-stats',`<div class="stat-box"><div class="stat-val pos">$${fmt(d.income)}</div><div class="stat-lbl">YTD Income</div></div><div class="stat-box"><div class="stat-val neg">$${fmt(d.expenses)}</div><div class="stat-lbl">YTD Expenses</div></div><div class="stat-box"><div class="stat-val ${d.profit>=0?'pos':'neg'}">$${fmt(d.profit)}</div><div class="stat-lbl">YTD Profit</div><div class="prog-bar"><div class="prog-fill" style="width:${d.income>0?Math.min(100,(d.profit/d.income*100).toFixed(0)):0}%"></div></div></div><div class="stat-box"><div class="stat-val gold">$${fmt(d.allTimeProfit)}</div><div class="stat-lbl">All-Time Profit</div></div>`);inner('r-outstanding-total','Owed: $'+fmt(d.totalOutstanding));inner('r-outstanding',d.outstanding&&d.outstanding.length?d.outstanding.map(e=>`<div class="outstanding-row"><div><div class="or-name">${e.customer}</div><div class="or-date">${e.date} · ${e.venue} · <span class="badge badge-${(e.status||'booked').toLowerCase()}">${e.status}</span></div></div><div class="or-amount">$${fmt(e.balance)}</div></div>`).join(''):'<div class="empty" style="padding:14px"><i>✅</i>All collected!</div>');inner('r-accounts',d.accountSummary&&d.accountSummary.length?d.accountSummary.map(a=>`<div class="acct-row"><div><div class="acct-name">${a.name}</div><div class="acct-details">In: $${fmt(a.in)} · Out: $${fmt(a.out)}</div></div><div class="acct-net" style="color:${a.net>=0?'#34d399':'#fb7185'}">$${fmt(a.net)}</div></div>`).join(''):'<div class="empty" style="padding:14px">No account data yet</div>');if(year!=='all'){gsr().withSuccessHandler(prev=>{if(!prev)return;const py=parseInt(year)-1;document.getElementById('r-compare-title').textContent='📈 '+year+' vs '+py;const row=(lbl,cur,prv,isP=false)=>{const diff=cur-prv,cls=diff>=0?'chg-pos':'chg-neg',sign=diff>=0?'+':'';return`<div class="compare-row ${isP?'total':''}"><div class="compare-label">${lbl}</div><div class="compare-cur" style="color:${isP?(cur>=0?'#34d399':'#fb7185'):'inherit'}">$${fmt(cur)}</div><div class="compare-prev">$${fmt(prv)}</div><div class="compare-chg ${cls}">${sign}$${fmt(diff)}</div></div>`;};inner('r-compare',`<div style="display:flex;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border)"><div style="flex:1">Metric</div><div style="min-width:76px;text-align:right">${year}</div><div style="min-width:76px;text-align:right">${py}</div><div style="min-width:54px;text-align:right">Δ</div></div>${row('Income',d.income,prev.income)}${row('Expenses',d.expenses,prev.expenses)}${row('Net Profit',d.profit,prev.profit,true)}`);document.getElementById('r-compare-card').style.display='block';}).withFailureHandler(()=>{}).getPriorYearData(year);}else document.getElementById('r-compare-card').style.display='none';inner('r-monthly',d.monthly.some(m=>m.income||m.expenses)?`<table style="width:100%;font-size:11px;border-collapse:collapse"><thead><tr style="color:var(--muted);font-size:9px;font-weight:700;text-transform:uppercase"><th style="text-align:left;padding:4px 0">Month</th><th style="text-align:right;color:#34d399">In</th><th style="text-align:right;color:#fb7185">Out</th><th style="text-align:right">Profit</th></tr></thead><tbody>${d.monthly.map((m,i)=>m.income||m.expenses?`<tr style="border-top:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">${months[i]}</td><td style="text-align:right;color:#34d399;font-weight:600">$${fmt(m.income)}</td><td style="text-align:right;color:#fb7185;font-weight:600">$${fmt(m.expenses)}</td><td style="text-align:right;font-weight:800;color:${m.profit>=0?'#34d399':'#fb7185'}">$${fmt(m.profit)}</td></tr>`:'').join('')}</tbody></table>`:'<div class="empty" style="padding:14px">No transactions yet</div>');inner('r-event-pl',d.eventPL&&d.eventPL.length?d.eventPL.map(e=>`<div class="pl-row"><div class="pl-info"><div class="pl-name">${e.customer} @ ${e.venue}</div><div class="pl-meta">${e.date} · ${e.type||'—'} · <span class="badge badge-${(e.status||'booked').toLowerCase()}">${e.status}</span></div></div><div style="text-align:right"><div class="pl-profit" style="color:${e.profit>=0?'#34d399':'#fb7185'}">$${fmt(e.profit)}</div><div style="font-size:9px;color:var(--muted)">${e.balance>0?'Owes $'+fmt(e.balance):e.balance<0?'Overpaid':'Paid ✓'}</div></div></div>`).join(''):'<div class="empty" style="padding:14px">No events yet</div>');if(d.categories&&d.categories.length){const mx=Math.max(...d.categories.map(c=>c.amount),1);inner('r-cats',d.categories.map(c=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1"><div style="font-size:12px;font-weight:600">${c.name}</div><div style="height:3px;background:var(--border);border-radius:3px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${(c.amount/mx*100).toFixed(0)}%;background:#f43f5e;border-radius:3px"></div></div></div><div style="font-weight:800;color:#fb7185;margin-left:12px;font-size:13px">$${fmt(c.amount)}</div></div>`).join(''));}else inner('r-cats','<div class="empty" style="padding:14px">No expenses yet</div>');inner('r-mileage',`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:700">Total Miles</div><div style="font-weight:900;color:var(--cyan)">${(d.totalMiles||0).toFixed(1)} mi</div></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:700">IRS Rate</div><div style="font-weight:700;color:var(--soft)">$${d.mileageRate}/mile</div></div><div style="display:flex;justify-content:space-between;padding:9px 0"><div style="font-size:13px;font-weight:700">Estimated Deduction</div><div style="font-weight:900;color:#34d399;font-size:15px">$${(d.mileageDeduction||0).toFixed(2)}</div></div><div style="font-size:10px;color:var(--muted);margin-top:6px">📍 From: 120 College Drive, Edison NJ</div>`);inner('r-contractors',d.contractors&&d.contractors.length?'<div style="font-size:10px;color:var(--muted);margin-bottom:9px">⚠️ Anyone paid $600+ may need a 1099-NEC</div>'+d.contractors.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:12px;font-weight:700">${c.person}</div><div style="font-size:10px;color:var(--muted)">${c.category}</div></div><div style="text-align:right"><div style="font-weight:800;color:#fb7185">$${fmt(c.total)}</div>${c.total>=600?'<div style="font-size:9px;color:#fb7185;font-weight:700">⚠️ 1099 Required</div>':''}</div></div>`).join(''):'<div class="empty" style="padding:14px">No subcontractor payments yet</div>');}).withFailureHandler(()=>inner('r-stats','<div class="stat-box"><div class="err-msg">⚠️ Could not load</div></div>')).getReportData(year);}
+
+// ══ EQUIPMENT ════════════════════════════════════
+function loadEquipment(){inner('eq-list','<div class="spin"></div>');gsr().withSuccessHandler(items=>{allEquipmentData=items||[];renderEquipmentList(allEquipmentData);inner('eq-count','('+allEquipmentData.length+')');}).withFailureHandler(()=>inner('eq-list','<div class="err-msg">⚠️ Could not load</div>')).getEquipmentList();}
+function loadEquipStats(){const totalVal=allEquipmentData.reduce((sum,e)=>sum+e.purchasePrice,0);const totalRepair=allEquipmentData.reduce((sum,e)=>sum+e.totalRepairCost,0);inner('eq-stats-grid',`<div class="stat-box"><div class="stat-val cyan">${allEquipmentData.length}</div><div class="stat-lbl">Items</div></div><div class="stat-box"><div class="stat-val gold">$${fmt(totalVal)}</div><div class="stat-lbl">Total Value</div></div><div class="stat-box"><div class="stat-val neg">$${fmt(totalRepair)}</div><div class="stat-lbl">Repair Costs</div></div><div class="stat-box"><div class="stat-val pos">${allEquipmentData.reduce((sum,e)=>sum+e.timesUsed,0)}</div><div class="stat-lbl">Total Uses</div></div>`);}
+const CAT_CLASS={'Speakers':'cat-speakers','Subwoofers':'cat-speakers','Lighting':'cat-lighting','Effects':'cat-effects','DJ Gear':'cat-dj','Visual':'cat-visual','Cables':'cat-cables','Power':'cat-cables','Truss':'cat-cables','Other':'cat-other'};
+function renderEquipmentList(items){const el=document.getElementById('eq-list');if(!items||!items.length){el.innerHTML='<div class="empty"><i>🎛️</i>No equipment yet</div>';return;}el.innerHTML=items.map(e=>{const catCls=CAT_CLASS[e.category]||'cat-other';const condCls='cond-'+(e.condition||'good').toLowerCase();const thumb=e.imageUrl?`<div class="eq-thumb"><img src="${e.imageUrl}" alt="${esc(e.name)}" onerror="this.parentElement.innerHTML='🎛️'"></div>`:`<div class="eq-thumb">🎛️</div>`;return`<div class="eq-item">${thumb}<div class="eq-body"><div><div class="eq-name">${e.name}<span class="eq-cat ${catCls}">${e.category}</span><span class="condition-badge ${condCls}" style="margin-left:4px">${e.condition}</span></div>${e.brand||e.model?'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(e.brand||'')+' '+(e.model||'')+(e.serial?' · S/N:'+e.serial:'')+'</div>':''}</div><div class="eq-meta"><span>🛒 $${fmt(e.purchasePrice)}</span>${e.purchaseDate?'<span>📅 '+e.purchaseDate+'</span>':''}<span>🔢 ${e.timesUsed}× used</span>${e.totalRepairCost>0?'<span style="color:#fb7185">🔧 $'+fmt(e.totalRepairCost)+'</span>':''}</div>${e.notes?'<div style="font-size:10px;color:var(--muted);margin-top:4px">'+e.notes+'</div>':''}<div class="eq-actions"><button class="btn-sm btn-sm-accent" onclick="openEquipDetail('${e.id}','${esc(e.name)}','${e.condition}','${esc(e.notes||'')}','${e.imageUrl||''}')">📋 History / Edit</button></div></div></div>`;}).join('');}
+function filterEquipment(q){renderEquipmentList(q?allEquipmentData.filter(e=>e.name.toLowerCase().includes(q.toLowerCase())||e.category.toLowerCase().includes(q.toLowerCase())||(e.brand||'').toLowerCase().includes(q.toLowerCase())):allEquipmentData);}
+function addEquipment(){const name=getVal('eq-name');if(!name){toast('Name required','err');return;}const data={name,category:getVal('eq-cat'),brand:getVal('eq-brand'),model:getVal('eq-model'),serial:getVal('eq-serial'),condition:getVal('eq-condition'),purchaseDate:getVal('eq-pdate'),purchasePrice:getVal('eq-pprice'),vendor:getVal('eq-vendor'),notes:getVal('eq-notes')};gsr().withSuccessHandler(eq=>{['eq-name','eq-brand','eq-model','eq-serial','eq-pprice','eq-vendor','eq-notes'].forEach(id=>setVal(id,''));toast('✅ Added to inventory!','ok');loadEquipment();loadEquipStats();}).withFailureHandler(e=>toast('Error: '+e.message,'err')).addEquipment(data);}
+function logEquipEvent(){const id=getVal('eq-log-id');if(!id){toast('Select equipment','err');return;}gsr().withSuccessHandler(r=>{toast('✅ Logged!','ok');setVal('eq-log-id','');setVal('eq-log-search','');setVal('eq-log-cost','');setVal('eq-log-event','');setVal('eq-log-notes','');loadEquipment();}).withFailureHandler(e=>toast('Error','err')).logEquipmentEvent({equipId:id,date:getVal('eq-log-date'),type:getVal('eq-log-type'),eventId:getVal('eq-log-event'),cost:getVal('eq-log-cost'),notes:getVal('eq-log-notes')});}
+function openEquipDetail(id,name,condition,notes,imageUrl){setVal('eq-edit-id',id);setVal('eq-edit-notes',notes);document.getElementById('eq-edit-condition').value=condition||'Good';inner('eq-detail-name',name+' <button class="modal-close" onclick="closeModal(\'eq-detail-modal-bg\')">✕</button>');inner('eq-detail-meta','Loading history…');inner('eq-detail-log','<div class="spin"></div>');const imgDiv=document.getElementById('eq-detail-img');const imgEl=document.getElementById('eq-detail-photo');if(imageUrl){imgEl.src=imageUrl;imgDiv.style.display='block';}else imgDiv.style.display='none';document.getElementById('eq-detail-modal-bg').classList.add('show');gsr().withSuccessHandler(logs=>{inner('eq-detail-meta','Log — '+logs.length+' entries');inner('eq-detail-log',logs.length?logs.map(l=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><div><div style="font-weight:700">${l.type}</div><div style="font-size:10px;color:var(--muted)">${l.date}${l.eventId?' · '+l.eventId:''}</div>${l.notes?'<div style="font-size:10px;color:var(--soft)">'+l.notes+'</div>':''}</div>${l.cost>0?'<div style="font-weight:800;color:#fb7185">$'+fmt(l.cost)+'</div>':''}</div>`).join(''):'<div class="empty" style="padding:10px"><i>📋</i>No history yet</div>');}).withFailureHandler(()=>inner('eq-detail-log','<div class="err-msg">⚠️ Could not load</div>')).getEquipmentLog(id);}
+function saveEquipEdit(){const id=getVal('eq-edit-id');gsr().withSuccessHandler(()=>{toast('✅ Updated','ok');closeModal('eq-detail-modal-bg');loadEquipment();}).withFailureHandler(e=>toast('Error','err')).updateEquipment({id,condition:document.getElementById('eq-edit-condition').value,notes:getVal('eq-edit-notes')});}
+function deactivateEquip(){const id=getVal('eq-edit-id');if(!confirm('Retire / mark as sold?'))return;gsr().withSuccessHandler(()=>{toast('Retired','ok');closeModal('eq-detail-modal-bg');loadEquipment();}).withFailureHandler(e=>toast('Error','err')).updateEquipment({id,active:'No'});}
+
+// ══ MILEAGE ══════════════════════════════════════
+function addMileage(){const dest=getVal('mi-dest');const miles=getVal('mi-miles');if(!dest){toast('Destination required','err');return;}if(!miles||parseFloat(miles)<=0){toast('Enter miles','err');return;}const isRound=getVal('mi-rt')==='yes';gsr().withSuccessHandler(r=>{toast('✅ Trip logged — '+r.totalMiles+' miles','ok');setVal('mi-dest','');setVal('mi-miles','');setVal('mi-preview','');setVal('mi-notes','');setVal('mi-event-id-hidden','');setVal('mi-event-link','');loadMileage();}).withFailureHandler(e=>toast('Error','err')).addMileage({date:getVal('mi-date'),eventId:getVal('mi-event-link'),destination:dest,milesOneWay:parseFloat(miles),roundTrip:isRound,driver:getVal('mi-driver'),notes:getVal('mi-notes')});}
+function loadMileage(){inner('mi-list','<div class="spin"></div>');const year=getVal('mi-year');gsr().withSuccessHandler(data=>{inner('mile-total',(data.totalMiles||0).toFixed(1)+' mi');inner('mile-deduction','Estimated deduction: $'+(data.deduction||0).toFixed(2)+' (IRS $'+data.rate+'/mi)');if(!data.rows||!data.rows.length){inner('mi-list','<div class="empty"><i>🚗</i>No trips logged for '+year+'</div>');return;}inner('mi-list',data.rows.map(r=>`<div class="mile-row"><div><div class="mile-dest">${r.destination}</div><div class="mile-info">${r.date} · ${r.driver} · ${r.roundTrip==='Yes'?'Round Trip':'One Way'}${r.eventId?' · <span style=color:var(--accent)>'+r.eventId+'</span>':''}</div>${r.notes?'<div class="mile-info">'+r.notes+'</div>':''}</div><div style="display:flex;align-items:center;gap:7px"><div class="mile-dist">${r.totalMiles.toFixed(1)} mi</div><button class="btn-sm btn-sm-red" style="padding:5px 9px;font-size:10px" onclick="deleteMile('${r.id}')">✕</button></div></div>`).join(''));}).withFailureHandler(()=>inner('mi-list','<div class="err-msg">⚠️ Could not load</div>')).getMileageList(parseInt(year));}
+function deleteMile(id){if(!confirm('Delete this trip?'))return;gsr().withSuccessHandler(()=>{toast('Deleted','ok');loadMileage();}).withFailureHandler(()=>toast('Error','err')).deleteMileage(id);}
+
+// ══ GENERAL LEDGER ═══════════════════════════════
+function submitGL(){const dir=getVal('gl-dir');const amount=getVal('gl-amount');if(!amount||parseFloat(amount)<=0){toast('Enter amount','err');return;}const method=getVal('gl-method');if(!method){toast('Select method','err');return;}gsr().withSuccessHandler(r=>{toast('✅ Saved!','ok');setVal('gl-amount','');setVal('gl-person','');setVal('gl-notes','');document.getElementById('gl-date').value=new Date().toISOString().split('T')[0];loadGL();}).withFailureHandler(e=>toast('Error: '+e.message,'err')).recordGeneralTransaction({direction:dir,subtype:getVal('gl-sub'),person:getVal('gl-person'),amount,method,account:getVal('gl-account'),date:getVal('gl-date'),notes:getVal('gl-notes')});}
+function loadGL(){inner('gl-list','<div class="spin"></div>');const year=getVal('gl-year');gsr().withSuccessHandler(txs=>{const inc=txs.filter(t=>t.direction==='income').reduce((s,t)=>s+t.amount,0);const exp=txs.filter(t=>t.direction==='expense').reduce((s,t)=>s+t.amount,0);inner('gl-stats',`<div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:9px;padding:10px;text-align:center;flex:1"><div style="font-size:16px;font-weight:900;color:#34d399">$${fmt(inc)}</div><div style="font-size:9px;color:var(--muted);font-weight:700;margin-top:3px;text-transform:uppercase">Non-Event Income</div></div><div style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);border-radius:9px;padding:10px;text-align:center;flex:1"><div style="font-size:16px;font-weight:900;color:#fb7185">$${fmt(exp)}</div><div style="font-size:9px;color:var(--muted);font-weight:700;margin-top:3px;text-transform:uppercase">Non-Event Expenses</div></div>`);if(!txs||!txs.length){inner('gl-list','<div class="empty"><i>📒</i>No non-event transactions yet</div>');return;}inner('gl-list',txs.map(t=>`<div class="gl-row"><div style="flex:1;min-width:0"><div class="gl-label ${t.direction}">${t.subtype}${t.person?' — '+t.person:''}</div><div class="gl-meta">${t.date} · ${t.method} · ${t.account}</div>${t.notes?'<div class="gl-meta" style="color:var(--soft)">'+t.notes+'</div>':''}</div><div class="gl-amt ${t.direction}">${t.direction==='income'?'+':'-'}$${fmt(t.amount)}</div></div>`).join(''));}).withFailureHandler(()=>inner('gl-list','<div class="err-msg">⚠️ Could not load</div>')).getGeneralTransactions(parseInt(year));}
+function onGlDir(){const dir=getVal('gl-dir');const sel=document.getElementById('gl-sub');for(const optgrp of sel.querySelectorAll('optgroup')){const isInc=optgrp.label.includes('INCOME');optgrp.hidden=dir==='income'?!isInc:isInc;}for(const opt of sel.querySelectorAll('option')){const grp=opt.parentElement;if(grp.hidden)continue;opt.selected=true;break;}}
+
+// ══ UTILS ════════════════════════════════════════
+function resetEventForm(){['e-cl','e-cid','e-ph','e-em','e-vn','e-va','e-nt','e-qt'].forEach(id=>setVal(id,''));document.getElementById('e-ty').value='';document.getElementById('e-dt').value=new Date().toISOString().split('T')[0];document.getElementById('e-st').value='17:00';document.getElementById('e-et').value='22:00';document.querySelectorAll('#eq-chips .chip.on,#tm-chips .chip.on,#eq-saved-chips .chip.on,#tm-saved-chips .chip.on').forEach(c=>c.classList.remove('on'));document.querySelectorAll('#eq-chips .chip-custom,#tm-chips .chip-custom').forEach(c=>c.remove());document.getElementById('mile-preview-inline').style.display='none';}
+function resetTxForm(){document.getElementById('p-type').value='';setVal('p-amount','');setVal('p-notes','');setVal('p-person','');setVal('p-pid','');document.getElementById('p-method').value='';document.getElementById('p-person-wrap').style.display='none';document.getElementById('p-desc-preview').style.display='none';document.getElementById('p-date').value=new Date().toISOString().split('T')[0];}
+function closeModal(id,e){if(e&&e.target!==document.getElementById(id))return;document.getElementById(id).classList.remove('show');}
+const getVal=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+const setVal=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+const inner=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h;};
+const hideDD=id=>{const d=document.getElementById(id);if(d)d.style.display='none';};
+const fmt=n=>(parseFloat(n)||0).toLocaleString('en-US',{maximumFractionDigits:0});
+const esc=s=>(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');clearTimeout(window._tt);window._tt=setTimeout(()=>t.className='toast',2800);}
+document.addEventListener('click',e=>{if(!e.target.closest('.ac'))document.querySelectorAll('.acd').forEach(d=>d.style.display='none');});
+</script>
+</body>
+</html>
