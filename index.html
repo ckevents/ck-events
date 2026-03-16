@@ -738,8 +738,9 @@ function checkSetup() {
 }
 
 // ── DROP-IN REPLACEMENT FOR google.script.run ─────────────────
-// Same API: gsr().withSuccessHandler(fn).withFailureHandler(fn).methodName(args)
-// Now uses fetch() under the hood → works from any domain, any device
+// Drop-in for google.script.run — uses GET to avoid Apps Script CORS/redirect issues
+// GET requests from external domains work reliably with Apps Script.
+// Usage: gsr().withSuccessHandler(fn).withFailureHandler(fn).methodName(arg1, arg2)
 function gsr() {
   let _success = () => {};
   let _failure = (e) => { toast('Error: ' + (e.message || String(e)), 'err'); };
@@ -752,24 +753,17 @@ function gsr() {
   return new Proxy(handler, {
     get(target, prop) {
       if (prop in target) return target[prop];
-      // Any other property = an API call
       return (...args) => {
-        const url = getScriptUrl();
-        if (!url) { _failure(new Error('Script URL not set. Open setup banner.')); return; }
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' }, // simple request = no CORS preflight
-          body: JSON.stringify({ action: prop, args })
-        })
-        .then(r => {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
-        .then(r => {
-          if (!r.ok) throw new Error(r.error || 'Server error');
-          _success(r.data);
-        })
-        .catch(e => _failure(e));
+        const base = getScriptUrl();
+        if (!base) { _failure(new Error('Script URL not set. Use the setup banner.')); return; }
+        // Build GET URL: ?action=methodName&args=["arg1","arg2"]
+        const url = base
+          + '?action=' + encodeURIComponent(prop)
+          + (args.length ? '&args=' + encodeURIComponent(JSON.stringify(args)) : '');
+        fetch(url, { redirect: 'follow' })
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(r => { if (!r.ok) throw new Error(r.error || 'Server error'); _success(r.data); })
+          .catch(e => _failure(e));
       };
     }
   });
