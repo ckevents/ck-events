@@ -918,13 +918,22 @@ const DEFAULT_SVCS = [
 // Get full list: built-in + custom saved
 function getAllSvcs() {
   const customs = S.customSvcs || [];
-  return [...DEFAULT_SVCS, ...customs.map(c => ({
-    name: typeof c === 'string' ? c : c.name,
-    e: '⭐', qty: c.qty || '', size: c.size || '',
-    custom: true, permanent: c.permanent !== false
-  }))];
+  return [...DEFAULT_SVCS, ...customs.map(c => {
+    // Handle case where Sheet returns a raw JSON string
+    let obj = c;
+    if (typeof c === 'string') {
+      try { obj = JSON.parse(c); } catch(e) { obj = { name: c }; }
+    }
+    return {
+      name: obj.name || obj,
+      e: obj.e || '⭐',
+      qty: obj.qty || '',
+      size: obj.size || '',
+      custom: true,
+      permanent: obj.permanent !== false
+    };
+  })];
 }
-
 function svcChip(s, selected) {
   const n = typeof s === 'object' ? s.name : s;
   const e = typeof s === 'object' ? (s.e||'⭐') : '⭐';
@@ -1207,30 +1216,32 @@ async function submitEvent() {
     notes: document.getElementById('f-notes').value,
   };
 
-  const btn=document.getElementById('sub-btn');
-  const msg=document.getElementById('form-msg');
-  btn.disabled=true; btn.textContent='⏳ Saving to Google Sheets…';
-  msg.textContent='Creating event + calendar entry…';
+  const dep = parseFloat(document.getElementById('f-dep').value)||0;
+  const btn = document.getElementById('sub-btn');
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
 
-  try {
-    const result = await apiForce('createEvent', payload);
-    const dep = parseFloat(document.getElementById('f-dep').value)||0;
-    if (dep > 0 && result.eventId) {
-      apiForce('recordTransaction', {
-        eventId: result.eventId, date, direction:'income', subtype:'deposit',
-        person: client, amount: dep, method:'Cash', account:'Kirtan', notes:'Deposit at booking'
-      }).catch(()=>{});
-    }
-    // Invalidate report cache
-    cDel('getReportData["' + S.year + '"]'); S.report = null;
-    toast(`✅ Event ${result.eventId} booked!${result.calId?' 📅 Calendar created.':''}`, 'ok', 5000);
-    msg.textContent = `✅ Saved! ID: ${result.eventId}`;
-    setTimeout(() => go('events'), 1000);
-  } catch(e) {
-    toast('Save failed: '+e.message,'er',6000);
-    msg.textContent='❌ '+e.message;
-    btn.disabled=false; btn.textContent='📅 Book Event & Sync to Calendar';
-  }
+  // ── OPTIMISTIC: navigate immediately, save in background ──
+  const toastId = toast('📋 Saving to Google Sheets…', 'in', 30000);
+  cDel('getReportData["' + S.year + '"]'); S.report = null;
+  go('events'); // ← navigate instantly, no waiting
+
+  // Save fires in background — user is already on Events page
+  apiForce('createEvent', payload)
+    .then(result => {
+      // Log deposit in background too if provided
+      if (dep > 0 && result.eventId) {
+        apiForce('recordTransaction', {
+          eventId: result.eventId, date, direction:'income', subtype:'deposit',
+          person: client, amount: dep, method:'Cash', account:'Kirtan', notes:'Deposit at booking'
+        }).catch(()=>{});
+      }
+      toast(`✅ ${client} saved! ID: ${result.eventId}${result.calId?' 📅':''}`, 'ok', 5000);
+      // Refresh events list silently
+      apiForce('getReportData', S.year).then(d=>{ if(d){ S.report=d; if(S.view==='events') renderEvsHTML(d.eventPL||[]); }}).catch(()=>{});
+    })
+    .catch(e => {
+      toast(`❌ Save failed: ${e.message} — check Sheet`, 'er', 8000);
+    });
 }
 
 /* ═══ FINANCIALS ════════════════════════════════════════════ */
