@@ -436,10 +436,23 @@ textarea.fi{resize:vertical;min-height:68px}
 ═══════════════════════════════════════════════════════════════ */
 
 // ── CONFIG ─────────────────────────────────────────────────────
-let SCRIPT_URL = localStorage.getItem('ck_url') ||
-  'https://script.google.com/macros/s/AKfycbwJzeX71OQZTdbgXE-MVg_pOFKlVJ3SsBcLWx03bkHp-Foha3qvK-KWHSHmiY49pY_GDA/exec';
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+// ── CONFIG ──
+let SCRIPT_URL = localStorage.getItem('ck_url') || '';
+const CACHE_TTL = 15 * 60 * 1000;
 
+async function loadConfig() {
+  // If user already saved a custom URL in Settings, use that
+  if (localStorage.getItem('ck_url')) return;
+  try {
+    const res = await fetch('./config.json?_=' + Date.now());
+    const cfg = await res.json();
+    if (cfg.scriptUrl) {
+      SCRIPT_URL = cfg.scriptUrl;
+    }
+  } catch(e) {
+    console.warn('config.json not found, using Settings URL');
+  }
+}
 // ── STATE ───────────────────────────────────────────────────────
 const S = {
   view: 'dashboard',
@@ -498,8 +511,11 @@ async function apiForce(action, ...args) {
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), 28000);
   try {
-    const res = await fetch(url.toString(), { signal: ctrl.signal });
-    clearTimeout(to);
+const res = await fetch(url.toString(), {
+  signal: ctrl.signal,
+  credentials: 'omit',   // ← fixes Chrome CORS redirect issue
+  mode: 'cors',
+});    clearTimeout(to);
     const json = await res.json();
     if (json.ok === false) throw new Error(json.error || 'Backend error');
     const cacheKey = action + JSON.stringify(args);
@@ -2032,6 +2048,7 @@ async function doGSearch(q) {
 
 /* ═══ BOOT ═══════════════════════════════════════════════════ */
 async function init() {
+  await loadConfig();   // ← load URL from config.json first
   const hash = window.location.hash.replace('#','') || 'dashboard';
   go(hash);
 
